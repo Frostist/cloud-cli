@@ -5,9 +5,14 @@ namespace App\Commands;
 use App\CloudClient;
 use App\ConfigRepository;
 use App\Dto\Application;
+use App\Dto\Deployment;
 use App\Dto\Environment;
+use App\Enums\DeploymentStatus;
 use App\Git;
 use App\Prompts\DynamicSpinner;
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterval;
+use Illuminate\Support\Sleep;
 use LaravelZero\Framework\Commands\Command;
 
 use function Laravel\Prompts\confirm;
@@ -93,28 +98,22 @@ class Deploy extends Command
             if ($existingEnvironment) {
                 info("Found existing environment: {$existingEnvironment->name}");
                 $deployment = $client->initiateDeployment($existingEnvironment->id);
-                info("Deployment initiated at {$deployment->startedAt?->toDateTimeString()}");
+                info('Deployment initiated at ' . $deployment->startedAt?->toDateTimeString());
+                $timeElapsed = $deployment->startedAt?->diffInSeconds(CarbonImmutable::now());
 
-                dump(['initial', $deployment]);
+                (new DynamicSpinner($this->getDeploymentMessage($deployment)))->spin(function (callable $updateMessage) use ($client, $deployment) {
+                    $checkApi = true;
 
-                (new DynamicSpinner('Deployingggg...'))->spin(function () use ($client, $deployment) {
                     do {
-                        $deploymentStatus = $client->getDeployment($deployment->id);
-                        dump($deploymentStatus);
-                        sleep(1);
+                        if ($checkApi) {
+                            $deploymentStatus = $client->getDeployment($deployment->id);
+                        }
+
+                        $updateMessage($this->getDeploymentMessage($deploymentStatus));
+                        Sleep::for(CarbonInterval::seconds(.75));
+                        $checkApi = !$checkApi;
                     } while (! $deploymentStatus->isCompleted());
                 });
-
-                // spin(
-                //     function () use ($client, $deployment) {
-                //         do {
-                //             $deploymentStatus = $client->getDeployment($deployment->id);
-                //             dump($deploymentStatus);
-                //             sleep(1);
-                //         } while (! $deploymentStatus->isCompleted());
-                //     },
-                //     'Deploying...'
-                // );
             } else {
                 info('No existing environment found. Creating new environment...');
 
@@ -163,6 +162,37 @@ class Deploy extends Command
 
             exit(1);
         }
+    }
+
+    protected function getDeploymentMessage(Deployment $deployment): string
+    {
+        $statusMessage = match ($deployment->status) {
+            DeploymentStatus::BUILD_PENDING => 'Building...',
+            DeploymentStatus::BUILD_CREATED => 'Build created...',
+            DeploymentStatus::BUILD_QUEUED => 'Build queued...',
+            DeploymentStatus::BUILD_RUNNING => 'Build running...',
+            DeploymentStatus::BUILD_SUCCEEDED => 'Build succeeded...',
+            DeploymentStatus::BUILD_FAILED => 'Build failed...',
+            DeploymentStatus::DEPLOYMENT_PENDING => 'Deploying...',
+            DeploymentStatus::DEPLOYMENT_CREATED => 'Deployment created...',
+            DeploymentStatus::DEPLOYMENT_QUEUED => 'Deployment queued...',
+            DeploymentStatus::DEPLOYMENT_RUNNING => 'Deployment running...',
+            DeploymentStatus::DEPLOYMENT_SUCCEEDED => 'Deployment succeeded...',
+            DeploymentStatus::DEPLOYMENT_FAILED => 'Deployment failed...',
+            DeploymentStatus::CANCELLED => 'Cancelled...',
+            DeploymentStatus::FAILED => 'Failed!',
+            DeploymentStatus::PENDING => 'Pending...',
+            default => $deployment->status,
+        };
+
+        $timeElapsed = $deployment->startedAt?->diffInSeconds(CarbonImmutable::now());
+
+        return sprintf(
+            "\e[2m%s:%s\e[22m <info>%s</info>",
+            str_pad(floor($timeElapsed / 60), 2, '0', STR_PAD_LEFT),
+            str_pad($timeElapsed % 60, 2, '0', STR_PAD_LEFT),
+            $statusMessage,
+        );
     }
 
     protected function ensureGitHubRepo(Git $git): void

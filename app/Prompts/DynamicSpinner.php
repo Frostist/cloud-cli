@@ -29,6 +29,13 @@ class DynamicSpinner extends Prompt
     protected int $pid;
 
     /**
+     * Socket pair for IPC between parent and child processes.
+     *
+     * @var resource[]|null
+     */
+    protected ?array $sockets = null;
+
+    /**
      * Create a new Spinner instance.
      */
     public function __construct(public string $message = '')
@@ -41,7 +48,7 @@ class DynamicSpinner extends Prompt
      *
      * @template TReturn of mixed
      *
-     * @param  \Closure(): TReturn  $callback
+     * @param  \Closure(callable(string): void): TReturn  $callback
      * @return TReturn
      */
     public function spin(Closure $callback): mixed
@@ -54,7 +61,15 @@ class DynamicSpinner extends Prompt
 
         $originalAsync = pcntl_async_signals(true);
 
-        pcntl_signal(SIGINT, fn() => exit());
+        pcntl_signal(SIGINT, fn () => exit());
+
+        $this->sockets = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
+
+        if ($this->sockets === false) {
+            $this->sockets = null;
+
+            return $this->renderStatically($callback);
+        }
 
         try {
             $this->hideCursor();
@@ -63,7 +78,11 @@ class DynamicSpinner extends Prompt
             $this->pid = pcntl_fork();
 
             if ($this->pid === 0) {
+                fclose($this->sockets[0]);
+                stream_set_blocking($this->sockets[1], false);
+
                 while (true) { // @phpstan-ignore-line
+                    $this->checkForMessageUpdate();
                     $this->render();
 
                     $this->count++;
@@ -71,7 +90,9 @@ class DynamicSpinner extends Prompt
                     usleep($this->interval * 1000);
                 }
             } else {
-                $result = $callback();
+                fclose($this->sockets[1]);
+
+                $result = $callback($this->createMessageUpdater());
 
                 $this->resetTerminal($originalAsync);
 
@@ -85,6 +106,50 @@ class DynamicSpinner extends Prompt
     }
 
     /**
+     * Create a callback that can be used to update the spinner message.
+     */
+    protected function createMessageUpdater(): Closure
+    {
+        return function (string $message): void {
+            if ($this->sockets !== null && is_resource($this->sockets[0])) {
+                fwrite($this->sockets[0], $message."\x00");
+            }
+        };
+    }
+
+    /**
+     * Check for message updates from the parent process.
+     */
+    protected function checkForMessageUpdate(): void
+    {
+        if ($this->sockets === null || ! is_resource($this->sockets[1])) {
+            return;
+        }
+
+        $data = '';
+
+        while (($chunk = fread($this->sockets[1], 1024)) !== false && $chunk !== '') {
+            $data .= $chunk;
+        }
+
+        if ($data !== '') {
+            $messages = explode("\x00", $data);
+            $lastMessage = '';
+
+            foreach (array_reverse($messages) as $msg) {
+                if ($msg !== '') {
+                    $lastMessage = $msg;
+                    break;
+                }
+            }
+
+            if ($lastMessage !== '') {
+                $this->message = $lastMessage;
+            }
+        }
+    }
+
+    /**
      * Reset the terminal.
      */
     protected function resetTerminal(bool $originalAsync): void
@@ -92,7 +157,24 @@ class DynamicSpinner extends Prompt
         pcntl_async_signals($originalAsync);
         pcntl_signal(SIGINT, SIG_DFL);
 
+        $this->closeSockets();
         $this->eraseRenderedLines();
+    }
+
+    /**
+     * Close socket connections.
+     */
+    protected function closeSockets(): void
+    {
+        if ($this->sockets !== null) {
+            foreach ($this->sockets as $socket) {
+                if (is_resource($socket)) {
+                    fclose($socket);
+                }
+            }
+
+            $this->sockets = null;
+        }
     }
 
     /**
@@ -100,18 +182,22 @@ class DynamicSpinner extends Prompt
      *
      * @template TReturn of mixed
      *
-     * @param  \Closure(): TReturn  $callback
+     * @param  \Closure(callable(string): void): TReturn  $callback
      * @return TReturn
      */
     protected function renderStatically(Closure $callback): mixed
     {
         $this->static = true;
 
+        $noopUpdater = function (string $message): void {
+            $this->message = $message;
+        };
+
         try {
             $this->hideCursor();
             $this->render();
 
-            $result = $callback();
+            $result = $callback($noopUpdater);
         } finally {
             $this->eraseRenderedLines();
         }
@@ -152,6 +238,8 @@ class DynamicSpinner extends Prompt
      */
     public function __destruct()
     {
+        $this->closeSockets();
+
         if (! empty($this->pid)) {
             posix_kill($this->pid, SIGHUP);
         }

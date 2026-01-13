@@ -2,13 +2,14 @@
 
 namespace App\Dto;
 
+use App\Enums\DeploymentStatus;
 use Carbon\CarbonImmutable;
 
 class Deployment
 {
     public function __construct(
         public readonly string $id,
-        public readonly string $status,
+        public readonly DeploymentStatus $status,
         public readonly ?string $commitHash = null,
         public readonly ?string $commitMessage = null,
         public readonly ?string $commitAuthor = null,
@@ -25,7 +26,7 @@ class Deployment
 
         return new self(
             id: $data['id'],
-            status: $attributes['status'] ?? 'pending',
+            status: DeploymentStatus::from($attributes['status'] ?? 'pending'),
             commitHash: $commit['hash'] ?? $attributes['commit_hash'] ?? null,
             commitMessage: $commit['message'] ?? $attributes['commit_message'] ?? null,
             commitAuthor: $commit['author'] ?? $attributes['commit_author'] ?? null,
@@ -36,32 +37,32 @@ class Deployment
 
     public function isPending(): bool
     {
-        return $this->status === 'deployment.pending';
+        return $this->status === DeploymentStatus::PENDING;
     }
 
     public function isBuilding(): bool
     {
-        return $this->status === 'deployment.building';
+        return $this->status === DeploymentStatus::BUILD_RUNNING;
     }
 
     public function isDeploying(): bool
     {
-        return $this->status === 'deployment.deploying';
+        return $this->status === DeploymentStatus::DEPLOYMENT_RUNNING;
     }
 
     public function isCompleted(): bool
     {
-        return $this->status === 'deployment.completed';
+        return $this->status === DeploymentStatus::DEPLOYMENT_SUCCEEDED;
     }
 
     public function isFailed(): bool
     {
-        return $this->status === 'deployment.failed';
+        return $this->status === DeploymentStatus::DEPLOYMENT_FAILED;
     }
 
     public function isCancelled(): bool
     {
-        return $this->status === 'deployment.cancelled';
+        return $this->status === DeploymentStatus::CANCELLED;
     }
 
     public function isFinished(): bool
