@@ -56,7 +56,7 @@ class Deploy extends Command
 
             $config->set('api_key', $apiKey);
 
-            info('API key saved to ' . $config->path());
+            info('API key saved to '.$config->path());
         }
 
         $this->ensureGitHubRepo($git);
@@ -71,34 +71,34 @@ class Deploy extends Command
         $repository = $git->remoteUrl();
 
         $applications = spin(
-            fn() => $client->listApplications(),
+            fn () => $client->listApplications(),
             'Checking for existing application...'
         );
 
         $existingApp = collect($applications['data'] ?? [])
-            ->map(fn($app) => Application::fromApiResponse($app))
+            ->map(fn ($app) => Application::fromApiResponse($app))
             ->first(
-                fn($app) => $app->repositoryFullName === $repository
+                fn ($app) => $app->repositoryFullName === $repository
             );
 
         if ($existingApp) {
             info("Found existing application: {$existingApp->name}");
 
             $environments = spin(
-                fn() => $client->listEnvironments($existingApp->id),
+                fn () => $client->listEnvironments($existingApp->id),
                 'Checking for existing environments...'
             );
 
             $defaultEnvironmentName = $git->getDefaultBranch();
 
             $existingEnvironment = collect($environments['data'] ?? [])
-                ->map(fn($env) => Environment::fromApiResponse($env))
-                ->first(fn($env) => $env->name === $defaultEnvironmentName);
+                ->map(fn ($env) => Environment::fromApiResponse($env))
+                ->first(fn ($env) => $env->name === $defaultEnvironmentName);
 
             if ($existingEnvironment) {
                 info("Found existing environment: {$existingEnvironment->name}");
                 $deployment = $client->initiateDeployment($existingEnvironment->id);
-                info('Deployment initiated at ' . $deployment->startedAt?->toDateTimeString());
+                info('Deployment initiated at '.$deployment->startedAt?->toDateTimeString());
                 $timeElapsed = $deployment->startedAt?->diffInSeconds(CarbonImmutable::now());
 
                 (new DynamicSpinner($this->getDeploymentMessage($deployment)))->spin(function (callable $updateMessage) use ($client, $deployment) {
@@ -111,14 +111,14 @@ class Deploy extends Command
 
                         $updateMessage($this->getDeploymentMessage($deploymentStatus));
                         Sleep::for(CarbonInterval::seconds(.75));
-                        $checkApi = !$checkApi;
+                        $checkApi = ! $checkApi;
                     } while (! $deploymentStatus->isCompleted());
                 });
             } else {
                 info('No existing environment found. Creating new environment...');
 
                 $newEnvironment = spin(
-                    fn() => $client->createEnvironment($existingApp->id, $defaultEnvironmentName),
+                    fn () => $client->createEnvironment($existingApp->id, $defaultEnvironmentName),
                     'Creating new environment...'
                 );
 
@@ -151,14 +151,14 @@ class Deploy extends Command
         );
 
         $application = spin(
-            fn() => $client->createApplication($repository, $appName, $region),
+            fn () => $client->createApplication($repository, $appName, $region),
             'Creating application...'
         );
 
         if (isset($application['data']['id'])) {
             info("Application created: {$application['data']['name']}");
         } else {
-            error('Failed to create application: ' . ($application['message'] ?? 'Unknown error'));
+            error('Failed to create application: '.($application['message'] ?? 'Unknown error'));
 
             exit(1);
         }
@@ -235,11 +235,11 @@ class Deploy extends Command
         $username = $git->getGitHubUsername();
         $orgs = $git->getGitHubOrgs();
 
-        $owners = collect([$username])->merge($orgs)->filter()->mapWithKeys(fn($org) => [$org => $org]);
+        $owners = collect([$username])->merge($orgs)->filter()->mapWithKeys(fn ($org) => [$org => $org]);
 
         if ($owners->count() === 1) {
             $owner = $owners->first();
-            info('Using GitHub account: ' . $owner);
+            info('Using GitHub account: '.$owner);
         } else {
             $owner = select(
                 label: 'Which GitHub account should own this repository?',
@@ -266,7 +266,7 @@ class Deploy extends Command
         $result = $git->createGitHubRepo($repoName, $owner, $visibility === 'private');
 
         if (! $result->successful()) {
-            error('Failed to create repository: ' . $result->errorOutput());
+            error('Failed to create repository: '.$result->errorOutput());
 
             exit(1);
         }
@@ -293,7 +293,7 @@ class Deploy extends Command
         $commitResult = $git->commit($commitMessage);
 
         if (! $commitResult->successful()) {
-            error('Failed to commit: ' . $commitResult->errorOutput());
+            error('Failed to commit: '.$commitResult->errorOutput());
 
             exit(1);
         }
@@ -303,7 +303,7 @@ class Deploy extends Command
         $pushResult = $git->push();
 
         if (! $pushResult->successful()) {
-            error('Failed to push: ' . $pushResult->errorOutput());
+            error('Failed to push: '.$pushResult->errorOutput());
 
             exit(1);
         }
