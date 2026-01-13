@@ -70,7 +70,7 @@ class Git
     {
         $visibility = $private ? '--private' : '--public';
 
-        $repoName = $org . '/' . $name;
+        $repoName = $org.'/'.$name;
 
         return $this->run(['gh', 'repo', 'create', $repoName, $visibility, '--source', '.', '--remote', 'origin']);
     }
@@ -82,7 +82,11 @@ class Git
 
     public function remoteUrl(): string
     {
-        return $this->run(['git', 'remote', 'get-url', 'origin'])->output();
+        return str($this->run(['git', 'remote', 'get-url', 'origin'])->output())
+            ->trim()
+            ->after(':')
+            ->beforeLast('.git')
+            ->toString();
     }
 
     public function addAll(): bool
@@ -98,6 +102,23 @@ class Git
     public function push(): ProcessResult
     {
         return $this->run(['git', 'push', '-u', 'origin', 'HEAD']);
+    }
+
+    public function getDefaultBranch(): string
+    {
+        $result = $this->run(['git', 'symbolic-ref', 'refs/remotes/origin/HEAD']);
+
+        if ($result->successful()) {
+            return str($result->output())->trim()->afterLast('/')->toString();
+        }
+
+        $result = $this->run(['git', 'rev-parse', '--abbrev-ref', 'HEAD']);
+
+        if ($result->successful()) {
+            return trim($result->output());
+        }
+
+        return 'main';
     }
 
     protected function run(array $command): ProcessResult
