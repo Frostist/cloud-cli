@@ -4,6 +4,7 @@ namespace App\Dto;
 
 use App\Enums\DeploymentStatus;
 use Carbon\CarbonImmutable;
+use Carbon\CarbonInterval;
 
 class Deployment
 {
@@ -33,6 +34,15 @@ class Deployment
             startedAt: $attributes['started_at'] ? CarbonImmutable::parse($attributes['started_at']) : null,
             finishedAt: $attributes['finished_at'] ? CarbonImmutable::parse($attributes['finished_at']) : null,
         );
+    }
+
+    public function totalTime(): CarbonInterval
+    {
+        if (! $this->startedAt || ! $this->finishedAt) {
+            return CarbonInterval::seconds(0);
+        }
+
+        return $this->finishedAt->diff($this->startedAt);
     }
 
     public function isPending(): bool

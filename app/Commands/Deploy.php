@@ -114,6 +114,10 @@ class Deploy extends Command
                         $checkApi = ! $checkApi;
                     } while (! $deploymentStatus->isCompleted());
                 });
+
+                $deployment = $client->getDeployment($deployment->id);
+
+                info('Deployment completed in '.$deployment->totalTime()->format('%I:%S'));
             } else {
                 info('No existing environment found. Creating new environment...');
 
