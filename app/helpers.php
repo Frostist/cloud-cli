@@ -1,6 +1,7 @@
 <?php
 
 use App\Prompts\Answered;
+use Laravel\Prompts\Note;
 
 if (! function_exists('answered')) {
     function answered(string $label, string $answer): void
@@ -12,6 +13,6 @@ if (! function_exists('answered')) {
 if (! function_exists('success')) {
     function success(string $message): void
     {
-        (new NoteWithIcon(message: $message))->display();
+        (new Note(message: $message, type: 'success'))->display();
     }
 }

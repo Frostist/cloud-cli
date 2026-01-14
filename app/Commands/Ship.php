@@ -46,7 +46,7 @@ class Ship extends Command
         (new WeMustShip)->animate();
         $this->newLine();
 
-        intro('Shipping to Laravel Cloud');
+        intro('Shipping application to Laravel Cloud');
 
         $apiKey = $config->get('api_key');
 
@@ -124,7 +124,7 @@ class Ship extends Command
         );
 
         if ($application) {
-            info("Application created: {$application->name}");
+            success('Application created!');
         } else {
             error('Failed to create application: '.($application['message'] ?? 'Unknown error'));
 

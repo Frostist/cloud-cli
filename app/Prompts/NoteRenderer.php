@@ -10,9 +10,11 @@ class NoteRenderer extends Renderer
     /**
      * Render the note.
      */
-    public function __invoke(Note|NoteWithIcon $note): string
+    public function __invoke(Note $note): string
     {
         $lines = explode(PHP_EOL, $note->message);
+
+        $spacer = str_repeat(' ', 3);
 
         switch ($note->type) {
             case 'intro':
@@ -22,42 +24,49 @@ class NoteRenderer extends Renderer
 
                 foreach ($lines as $line) {
                     $line = str_pad($line, $longest, ' ');
-                    $this->line($this->cyan(TimelineSymbol::DOT->value.'  '.$line));
+                    $this->line($this->cyan(TimelineSymbol::DOT->value.$spacer.$line));
                 }
 
                 return $this;
 
             case 'warning':
                 foreach ($lines as $line) {
-                    $this->line($this->yellow(TimelineSymbol::WARNING->value.'  '.$line));
+                    $this->line($this->yellow(TimelineSymbol::WARNING->value.$spacer.$line));
                 }
 
                 return $this;
 
             case 'error':
                 foreach ($lines as $line) {
-                    $this->line($this->red(TimelineSymbol::FAILURE->value.'  '.$line));
+                    $this->line($this->red(TimelineSymbol::FAILURE->value.$spacer.$line));
                 }
 
                 return $this;
 
             case 'alert':
                 foreach ($lines as $line) {
-                    $this->line($this->bgRed($this->white(TimelineSymbol::FAILURE->value.'  '.$line)));
+                    $this->line($this->bgRed($this->white(TimelineSymbol::FAILURE->value.$spacer.$line)));
                 }
 
                 return $this;
 
             case 'info':
                 foreach ($lines as $line) {
-                    $this->line($this->green(TimelineSymbol::DOT->value.'  '.$line));
+                    $this->line($this->green(TimelineSymbol::DOT->value.$spacer.$line));
+                }
+
+                return $this;
+
+            case 'success':
+                foreach ($lines as $line) {
+                    $this->line($this->green(TimelineSymbol::SUCCESS->value.$spacer.$line));
                 }
 
                 return $this;
 
             default:
                 foreach ($lines as $line) {
-                    $this->line(TimelineSymbol::LINE->value.'  '.$line);
+                    $this->line(TimelineSymbol::LINE->value.$spacer.$line);
                 }
 
                 return $this;
