@@ -10,6 +10,7 @@ use App\Dto\Environment;
 use App\Enums\DeploymentStatus;
 use App\Git;
 use App\Prompts\DynamicSpinner;
+use App\Prompts\WeMustShip;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
 use Illuminate\Support\Sleep;
@@ -44,6 +45,10 @@ class Deploy extends Command
 
     public function handle(ConfigRepository $config, Git $git)
     {
+        $this->newLine();
+        (new WeMustShip)->animate();
+        $this->newLine();
+
         intro('Deploying to Laravel Cloud');
 
         $apiKey = $config->get('api_key');
@@ -85,7 +90,7 @@ class Deploy extends Command
             );
 
         if ($existingApp) {
-            info("Found existing application: {$existingApp->name}");
+            answered(label: 'Application', answer: "{$existingApp->name}");
 
             $environments = spin(
                 fn () => $client->listEnvironments($existingApp->id),
@@ -99,7 +104,8 @@ class Deploy extends Command
                 ->first(fn ($env) => $env->name === $defaultEnvironmentName);
 
             if ($existingEnvironment) {
-                info("Found existing environment: {$existingEnvironment->name}");
+                answered(label: 'Environment', answer: "{$existingEnvironment->name}");
+
                 $deployment = $client->initiateDeployment($existingEnvironment->id);
                 info('Deployment initiated at '.$deployment->startedAt?->toDateTimeString());
                 $timeElapsed = $deployment->startedAt?->diffInSeconds(CarbonImmutable::now());

@@ -2,6 +2,7 @@
 
 namespace App\Prompts;
 
+use App\Enums\TimelineSymbol;
 use Laravel\Prompts\Note;
 
 class NoteRenderer extends Renderer
@@ -21,42 +22,42 @@ class NoteRenderer extends Renderer
 
                 foreach ($lines as $line) {
                     $line = str_pad($line, $longest, ' ');
-                    $this->line("├ {$this->cyan($line)}");
+                    $this->line($this->cyan(TimelineSymbol::DOT->value.'  '.$line));
                 }
 
                 return $this;
 
             case 'warning':
                 foreach ($lines as $line) {
-                    $this->line($this->yellow("▲ {$line}"));
+                    $this->line($this->yellow(TimelineSymbol::WARNING->value.'  '.$line));
                 }
 
                 return $this;
 
             case 'error':
                 foreach ($lines as $line) {
-                    $this->line($this->red("x {$line}"));
+                    $this->line($this->red(TimelineSymbol::FAILURE->value.'  '.$line));
                 }
 
                 return $this;
 
             case 'alert':
                 foreach ($lines as $line) {
-                    $this->line(" {$this->bgRed($this->white("● {$line} "))}");
+                    $this->line($this->bgRed($this->white(TimelineSymbol::FAILURE->value.'  '.$line)));
                 }
 
                 return $this;
 
             case 'info':
                 foreach ($lines as $line) {
-                    $this->line($this->green("◆ {$line}"));
+                    $this->line($this->green(TimelineSymbol::DOT->value.'  '.$line));
                 }
 
                 return $this;
 
             default:
                 foreach ($lines as $line) {
-                    $this->line("│ {$line}");
+                    $this->line(TimelineSymbol::LINE->value.'  '.$line);
                 }
 
                 return $this;
