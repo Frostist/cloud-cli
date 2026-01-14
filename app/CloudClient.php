@@ -26,7 +26,9 @@ class CloudClient
      */
     public function listApplications(): Paginated
     {
-        $response = $this->get('/applications');
+        $response = $this->get('/applications', [
+            'include' => implode(',', ['organization', 'environments', 'defaultEnvironment']),
+        ]);
 
         return new Paginated(
             data: array_map(fn ($item) => Application::fromApiResponse($item), $response['data']),
@@ -69,9 +71,17 @@ class CloudClient
         return Application::fromApiResponse($response['data']);
     }
 
-    public function listEnvironments(string $applicationId): array
+    /**
+     * @return Paginated<Environment>
+     */
+    public function listEnvironments(string $applicationId): Paginated
     {
-        return $this->get("/applications/{$applicationId}/environments");
+        $response = $this->get("/applications/{$applicationId}/environments");
+
+        return new Paginated(
+            data: array_map(fn ($item) => Environment::fromApiResponse($item), $response['data']),
+            links: $response['links'],
+        );
     }
 
     public function createEnvironment(string $applicationId, string $name, ?string $branch = null): Environment

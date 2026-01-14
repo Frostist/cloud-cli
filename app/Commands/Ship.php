@@ -2,7 +2,7 @@
 
 namespace App\Commands;
 
-use App\CloudClient;
+use App\Concerns\HasAClient;
 use App\ConfigRepository;
 use App\Dto\Application;
 use App\Dto\Deployment;
@@ -24,7 +24,6 @@ use function Laravel\Prompts\error;
 use function Laravel\Prompts\info;
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\multiselect;
-use function Laravel\Prompts\password;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\text;
@@ -33,12 +32,11 @@ use function Laravel\Prompts\warning;
 class Ship extends Command
 {
     use Colors;
+    use HasAClient;
 
     protected $signature = 'ship';
 
     protected $description = 'Ship the application to Laravel Cloud';
-
-    protected CloudClient $client;
 
     public function handle(ConfigRepository $config, Git $git)
     {
@@ -48,24 +46,7 @@ class Ship extends Command
 
         intro('Shipping application to Laravel Cloud');
 
-        $apiKey = $config->get('api_key');
-
-        if (! $apiKey) {
-            info('No API key found!');
-            info('Learn how to generate a key: https://cloud.laravel.com/docs/api/authentication#create-an-api-token');
-
-            $apiKey = password(
-                label: 'Laravel Cloud API key',
-                required: true,
-            );
-
-            $config->set('api_key', $apiKey);
-
-            info('API key saved to '.$config->path());
-        }
-
-        $this->client = new CloudClient($apiKey);
-
+        $this->ensureClient();
         $this->ensureGitHubRepo($git);
         $this->createCloudApplication($git);
     }
