@@ -12,7 +12,7 @@ trait RequiresApplication
     /**
      * @param  Collection<Application>  $apps
      */
-    protected function getApplication(Collection $apps): Application
+    protected function getCloudApplication(Collection $apps): Application
     {
         if ($this->argument('application')) {
             $app = $apps->firstWhere('id', $this->argument('application'));

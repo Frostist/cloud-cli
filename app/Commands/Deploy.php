@@ -55,7 +55,7 @@ class Deploy extends Command
         if ($existingApps->isEmpty()) {
             warning('No existing Cloud application found for this repository.');
 
-            $shouldShip = confirm('Do you want to ship this repository to Laravel Cloud?');
+            $shouldShip = confirm('Do you want to ship this application to Laravel Cloud?');
 
             if ($shouldShip) {
                 Artisan::call('ship', [], $this->output);
@@ -68,7 +68,7 @@ class Deploy extends Command
             exit(1);
         }
 
-        $app = $this->getApplication($existingApps);
+        $app = $this->getCloudApplication($existingApps);
 
         $environments = spin(
             fn () => $this->client->listEnvironments($app->id),
@@ -80,13 +80,19 @@ class Deploy extends Command
         $deployment = $this->client->initiateDeployment($environment->id);
 
         dynamicSpinner(
-            $this->getDeploymentMessage($deployment),
             fn (callable $updateMessage) => $this->updateDeploymentStatus($deployment, $updateMessage),
+            $this->getDeploymentMessage($deployment),
         );
 
         $deployment = $this->client->getDeployment($deployment->id);
 
-        outro('Deployment completed in <info>'.$deployment->totalTime()->format('%I:%S').'</info>');
+        success('Deployment completed in <comment>'.$deployment->totalTime()->format('%I:%S').'</comment>');
+
+        if ($environment->url) {
+            outro($environment->url);
+        } else {
+            outro('Deployment completed in <comment>'.$deployment->totalTime()->format('%I:%S').'</comment>');
+        }
     }
 
     protected function updateDeploymentStatus(Deployment $deployment, callable $updateMessage): void
@@ -95,9 +101,7 @@ class Deploy extends Command
         $count = 0;
         $checkInterval = 3;
         $updateInterval = 900;
-        $dotFrames = ['', '.', '..', '...', '...'];
         $lastMessage = '';
-        $dotFrameIndex = 0;
 
         do {
             if ($checkApi) {
@@ -106,21 +110,12 @@ class Deploy extends Command
 
             $newMessage = $this->getDeploymentMessage($deploymentStatus);
 
-            if ($lastMessage !== $deployment->status->label()) {
-                $dotFrameIndex = 0;
-            }
+            $updateMessage($newMessage, $lastMessage !== $deploymentStatus->status->label());
 
-            $lastMessage = $deployment->status->label();
-
-            if (! str_ends_with($lastMessage, '!')) {
-                $newMessage .= $this->dim($dotFrames[$dotFrameIndex % count($dotFrames)]);
-            }
-
-            $updateMessage($newMessage);
+            $lastMessage = $deploymentStatus->status->label();
 
             Sleep::for(CarbonInterval::milliseconds($updateInterval));
             $count++;
-            $dotFrameIndex++;
             $checkApi = $count % $checkInterval === 0;
         } while (! $deploymentStatus->isCompleted());
     }
@@ -130,7 +125,7 @@ class Deploy extends Command
         $timeElapsed = $deployment->startedAt?->diffInSeconds(CarbonImmutable::now());
 
         return sprintf(
-            $this->dim('%s:%s').' <info>%s</info>',
+            $this->dim('%s:%s').' %s',
             str_pad(floor($timeElapsed / 60), 2, '0', STR_PAD_LEFT),
             str_pad($timeElapsed % 60, 2, '0', STR_PAD_LEFT),
             $deployment->status->label(),

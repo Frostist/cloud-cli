@@ -3,15 +3,24 @@
 namespace App\Prompts;
 
 use Closure;
+use Laravel\Prompts\Concerns\Colors;
 use Laravel\Prompts\Prompt;
+use Laravel\Prompts\Themes\Default\Concerns\InteractsWithStrings;
 use RuntimeException;
 
 class DynamicSpinner extends Prompt
 {
+    use Colors;
+    use InteractsWithStrings;
+
     /**
      * How long to wait between rendering each frame.
      */
     public int $interval = 100;
+
+    public array $ellipsisFrames = ['', '.', '..', '...', '...'];
+
+    public int $ellipsisCount = 0;
 
     /**
      * The number of times the spinner has been rendered.
@@ -35,12 +44,19 @@ class DynamicSpinner extends Prompt
      */
     protected ?array $sockets = null;
 
+    public string $lastMessage = '';
+
+    public string $displayMessage = '';
+
+    protected string $resetIdentifier = '';
+
     /**
      * Create a new Spinner instance.
      */
     public function __construct(public string $message = '')
     {
-        //
+        $this->lastMessage = $message;
+        $this->resetIdentifier = str()->random(10);
     }
 
     /**
@@ -87,6 +103,16 @@ class DynamicSpinner extends Prompt
 
                     $this->count++;
 
+                    if ($this->count % 10 === 0) {
+                        $this->ellipsisCount++;
+                    }
+
+                    if (! str($this->stripEscapeSequences($this->message))->endsWith(['.', '!'])) {
+                        $this->displayMessage = $this->message.$this->dim($this->ellipsisFrames[$this->ellipsisCount % count($this->ellipsisFrames)]);
+                    } else {
+                        $this->displayMessage = $this->message;
+                    }
+
                     usleep($this->interval * 1000);
                 }
             } else {
@@ -110,9 +136,9 @@ class DynamicSpinner extends Prompt
      */
     protected function createMessageUpdater(): Closure
     {
-        return function (string $message): void {
+        return function (string $message, bool $resetEllipsis = false): void {
             if ($this->sockets !== null && is_resource($this->sockets[0])) {
-                fwrite($this->sockets[0], $message."\x00");
+                fwrite($this->sockets[0], $message.($resetEllipsis ? $this->resetIdentifier : '')."\x00");
             }
         };
     }
@@ -144,6 +170,11 @@ class DynamicSpinner extends Prompt
             }
 
             if ($lastMessage !== '') {
+                if (str($lastMessage)->endsWith($this->resetIdentifier)) {
+                    $this->ellipsisCount = 0;
+                    $lastMessage = str($lastMessage)->beforeLast($this->resetIdentifier)->toString();
+                }
+
                 $this->message = $lastMessage;
             }
         }

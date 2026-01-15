@@ -4,7 +4,6 @@ namespace App\Commands;
 
 use App\Concerns\HasAClient;
 use App\Concerns\RequiresRemoteGitRepo;
-use App\ConfigRepository;
 use App\Dto\Application;
 use App\Enums\CloudRegion;
 use App\Git;
@@ -20,6 +19,7 @@ use function Laravel\Prompts\error;
 use function Laravel\Prompts\info;
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\multiselect;
+use function Laravel\Prompts\outro;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\text;
@@ -34,21 +34,14 @@ class Ship extends Command
 
     protected $description = 'Ship the application to Laravel Cloud';
 
-    public function handle(ConfigRepository $config, Git $git)
+    public function handle(Git $git)
     {
-        $this->newLine();
         slideIn('WE MUST *SHIP*');
-        $this->newLine();
-
         intro('Shipping application to Laravel Cloud');
 
         $this->ensureClient();
-        $this->ensureRemoteGitRepo($git);
-        $this->createCloudApplication($git);
-    }
+        $this->ensureRemoteGitRepo();
 
-    protected function createCloudApplication(Git $git): void
-    {
         $repository = $git->remoteRepo();
 
         $applications = spin(
@@ -66,14 +59,14 @@ class Ship extends Command
             $options = $existingApps->mapWithKeys(fn (Application $app) => [$app->id => 'Deploy '.$app->name]);
             $options->prepend('Create new application', 'new');
 
-            $selection = select(
+            $selectedApp = select(
                 label: 'Select an application',
                 options: $options,
             );
 
-            if ($selection !== 'new') {
+            if ($selectedApp !== 'new') {
                 Artisan::call('deploy', [
-                    'application' => $selection,
+                    'application' => $selectedApp,
                 ], $this->output);
 
                 return;
@@ -95,56 +88,71 @@ class Ship extends Command
             default: $defaultRegion,
         );
 
-        $application = spin(
+        $application = dynamicSpinner(
             fn () => $this->client->createApplication($repository, $appName, $region),
-            'Creating application...'
+            'Creating application'
         );
 
-        if ($application) {
-            success('Application created!');
-        } else {
+        if (! $application) {
             error('Failed to create application: '.($application['message'] ?? 'Unknown error'));
 
             exit(1);
         }
 
+        success('Application created!');
+
         $application = $this->client->getApplication($application->id);
 
+        $this->pushCustomEnvironmentVariables($application);
+
+        outro(sprintf('https://cloud.laravel.com/%s/%s', $application->organizationId, $application->slug));
+    }
+
+    protected function pushCustomEnvironmentVariables(Application $application): void
+    {
         $envPath = getcwd().'/.env';
 
-        if (file_exists($envPath)) {
-            try {
-                $variables = Dotenv::parse(file_get_contents($envPath));
-            } catch (Throwable $e) {
-                //
-            }
-
-            $diff = array_diff(array_keys($variables), config('env.laravel'));
-
-            if (count($diff) > 0) {
-                $diffVariables = collect($diff)->mapWithKeys(fn ($key) => [
-                    $key => $key.$this->dim(str($variables[$key])->limit(5)->prepend(' (')->append(')')),
-                ]);
-                $varsToAdd = multiselect('Add local environment variables to Cloud environment?', options: $diffVariables);
-
-                if (count($varsToAdd) > 0) {
-                    $varsToAdd = collect($varsToAdd)->mapWithKeys(fn ($key) => [$key => $variables[$key]]);
-
-                    spin(
-                        function () use ($application, $varsToAdd) {
-                            while (count($application->environmentIds) === 0) {
-                                $application = $this->client->getApplication($application->id);
-                                Sleep::for(CarbonInterval::seconds(1));
-                            }
-
-                            $this->client->replaceEnvironmentVariables($application->environmentIds[0], $varsToAdd->toArray());
-                        },
-                        'Adding selected variables to Cloud environment...'
-                    );
-                }
-            }
+        if (! file_exists($envPath)) {
+            return;
         }
 
-        info(sprintf('https://cloud.laravel.com/%s/%s', $application->organizationId, $application->slug));
+        try {
+            $variables = Dotenv::parse(file_get_contents($envPath));
+        } catch (Throwable $e) {
+            return;
+        }
+
+        $diff = array_diff(array_keys($variables), config('env.laravel'));
+
+        if (count($diff) === 0) {
+            return;
+        }
+
+        $varOptions = collect($diff)->mapWithKeys(fn ($key) => [
+            $key => $key.$this->dim(str($variables[$key])->limit(5)->prepend(' (')->append(')')),
+        ]);
+
+        $varsToAdd = multiselect(
+            label: 'Add local environment variables to Cloud environment?',
+            options: $varOptions,
+        );
+
+        if (count($varsToAdd) === 0) {
+            return;
+        }
+
+        $varsToAdd = collect($varsToAdd)->mapWithKeys(fn ($key) => [$key => $variables[$key]]);
+
+        dynamicSpinner(
+            function () use ($application, $varsToAdd) {
+                while (count($application->environmentIds) === 0) {
+                    $application = $this->client->getApplication($application->id);
+                    Sleep::for(CarbonInterval::seconds(1));
+                }
+
+                $this->client->replaceEnvironmentVariables($application->environmentIds[0], $varsToAdd->toArray());
+            },
+            'Adding selected variables to Cloud environment'
+        );
     }
 }

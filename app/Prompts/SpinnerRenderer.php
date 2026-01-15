@@ -36,6 +36,6 @@ class SpinnerRenderer extends Renderer
 
         $frame = $this->frames[$spinner->count % count($this->frames)];
 
-        return $this->line("{$this->cyan($frame)}   {$spinner->message}");
+        return $this->line("{$this->cyan($frame)}  ".($spinner->displayMessage ?? $spinner->message));
     }
 }
