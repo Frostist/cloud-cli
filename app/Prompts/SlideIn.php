@@ -2,15 +2,15 @@
 
 namespace App\Prompts;
 
-use App\Enums\Letter;
 use App\Support\Animatable;
+use App\Support\Font;
 use Carbon\CarbonInterval;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Sleep;
 use Laravel\Prompts\Prompt;
 use Laravel\Prompts\Themes\Default\Concerns\InteractsWithStrings;
 
-class WeMustShip extends Prompt
+class SlideIn extends Prompt
 {
     use InteractsWithStrings;
 
@@ -27,21 +27,27 @@ class WeMustShip extends Prompt
 
     protected int $minWidth = 60;
 
+    public function __construct(public string $message)
+    {
+        //
+    }
+
     public function animate(): void
     {
         $this->minWidth = min($this->minWidth, $this->terminal()->cols() - 6);
 
+        $font = Font::load('computer');
+
         $this->capturePreviousNewLines();
 
-        $message = collect(str_split('WE MUST SHIP'));
-        $startBoldAt = strpos($message->implode(''), 'SHIP');
+        preg_match_all('/\*/', $this->message, $matches, PREG_OFFSET_CAPTURE);
+        $boldIndexes = collect($matches[0])->pluck(1)->toArray();
+        $bold = false;
 
         $this->hideCursor();
 
-        $this->letters = $message
-            ->map(fn ($letter) => collect(Letter::cases())->first(fn ($l) => $l->name === $letter)?->value ?? str_repeat(' '.PHP_EOL, 8))
-            ->map(fn ($l) => explode(PHP_EOL, $l))
-            ->map(function ($lines, $index) use ($startBoldAt) {
+        $this->letters = collect($font->message(str_replace('*', '', $this->message)))
+            ->map(function ($lines, $index) use ($boldIndexes, &$bold) {
                 $animation = new Animatable(0, 0, count($lines));
                 $animation->toggle();
                 $animation->delay($index);
@@ -49,12 +55,16 @@ class WeMustShip extends Prompt
 
                 $longest = collect($lines)->max(fn ($line) => mb_strwidth($line)) + 1;
 
-                return collect($lines)->map(function ($line) use ($longest, $startBoldAt, $index) {
+                if (in_array($index, $boldIndexes)) {
+                    $bold = ! $bold;
+                }
+
+                return collect($lines)->map(function ($line) use ($longest, $bold) {
                     while (mb_strwidth($line) < $longest) {
                         $line .= ' ';
                     }
 
-                    $tag = $startBoldAt <= $index ? 'info' : 'comment';
+                    $tag = $bold ? 'info' : 'comment';
 
                     return "<{$tag}>{$line}</{$tag}>";
                 });

@@ -66,8 +66,6 @@ class CloudClient
             'include' => implode(',', ['organization', 'environments', 'defaultEnvironment']),
         ]);
 
-        dump($response);
-
         return Application::fromApiResponse($response['data']);
     }
 

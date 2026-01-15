@@ -9,7 +9,6 @@ use App\Dto\Deployment;
 use App\Enums\CloudRegion;
 use App\Enums\DeploymentStatus;
 use App\Git;
-use App\Prompts\WeMustShip;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
 use Dotenv\Dotenv;
@@ -41,7 +40,7 @@ class Ship extends Command
     public function handle(ConfigRepository $config, Git $git)
     {
         $this->newLine();
-        (new WeMustShip)->animate();
+        slideIn('WE MUST *SHIP*');
         $this->newLine();
 
         intro('Shipping application to Laravel Cloud');
@@ -78,7 +77,7 @@ class Ship extends Command
             if ($selection !== 'new') {
                 Artisan::call('deploy', [
                     'application' => $selection,
-                ]);
+                ], $this->output);
 
                 return;
             }
