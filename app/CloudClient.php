@@ -4,6 +4,7 @@ namespace App;
 
 use App\Dto\Application;
 use App\Dto\Database;
+use App\Dto\DatabaseType;
 use App\Dto\Deployment;
 use App\Dto\Environment;
 use App\Dto\EnvironmentInstance;
@@ -170,6 +171,16 @@ class CloudClient
             data: array_map(fn ($item) => Database::fromApiResponse($item, $response), $response['data']),
             links: $response['links'],
         );
+    }
+
+    /**
+     * @return DatabaseType[]
+     */
+    public function listDatabaseTypes(): array
+    {
+        $response = $this->get('/databases/types');
+
+        return array_map(fn ($item) => DatabaseType::fromApiResponse($item), $response['data']);
     }
 
     public function getDatabase(string $databaseId): Database

@@ -12,6 +12,7 @@ class Environment
         public readonly ?string $status,
         public readonly array $instances,
         public readonly string $buildCommand,
+        public readonly string $deployCommand,
     ) {
         //
     }
@@ -26,6 +27,7 @@ class Environment
             status: $data['attributes']['status'],
             instances: array_column($data['relationships']['instances']['data'] ?? [], 'id'),
             buildCommand: $data['attributes']['build_command'],
+            deployCommand: $data['attributes']['deploy_command'],
         );
     }
 }

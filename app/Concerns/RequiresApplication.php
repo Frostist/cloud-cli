@@ -29,7 +29,7 @@ trait RequiresApplication
         }
 
         $selectedApp = select(
-            label: 'Select an application',
+            label: 'Application',
             options: $apps->mapWithKeys(fn ($app) => [$app->id => $app->name]),
         );
 

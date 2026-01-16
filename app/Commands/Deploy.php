@@ -11,6 +11,7 @@ use App\Git;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Sleep;
 use Laravel\Prompts\Concerns\Colors;
 use LaravelZero\Framework\Commands\Command;
@@ -30,7 +31,10 @@ class Deploy extends Command
     use RequiresEnvironment;
     use RequiresRemoteGitRepo;
 
-    protected $signature = 'deploy {application? : The ID of the application to deploy} {environment? : The name of the environment to deploy}';
+    protected $signature = 'deploy '
+        .'{application? : The ID of the application to deploy} '
+        .'{environment? : The name of the environment to deploy} '
+        .'{--open : Open the site in the browser after a successful deployment}';
 
     protected $description = 'Deploy the application to Laravel Cloud';
 
@@ -98,6 +102,10 @@ class Deploy extends Command
         success('Deployment completed in <comment>'.$deployment->totalTime()->format('%I:%S').'</comment>');
 
         if ($environment->url) {
+            if ($this->option('open') || confirm('Open site in browser?')) {
+                Process::run('open '.$environment->url);
+            }
+
             outro($environment->url);
         } else {
             outro('Deployment completed in <comment>'.$deployment->totalTime()->format('%I:%S').'</comment>');

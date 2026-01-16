@@ -7,6 +7,7 @@ use App\Concerns\RequiresRemoteGitRepo;
 use App\Concerns\Validates;
 use App\Dto\Application;
 use App\Dto\Database;
+use App\Dto\DatabaseType;
 use App\Dto\Environment;
 use App\Dto\ValidationErrors;
 use App\Enums\CloudRegion;
@@ -116,32 +117,58 @@ class Ship extends Command
             return;
         }
 
-        if (confirm('Do you want to edit the build command before deploying?')) {
-            $this->loopUntilValid(
-                function () use ($environment) {
-                    $buildCommand = textarea(
-                        label: 'Build command',
-                        default: $environment->buildCommand,
-                        required: true,
-                    );
-
-                    if ($buildCommand === $environment->buildCommand) {
-                        return;
-                    }
-
-                    return dynamicSpinner(
-                        fn () => $this->client->updateEnvironment($environment->id, [
-                            'build_command' => $buildCommand,
-                        ]),
-                        'Updating build command',
-                    );
-                },
-            );
+        if (confirm('Do you want to edit the build and deploys commands before deploying?')) {
+            $this->updateCommands($environment);
         }
 
         Artisan::call('deploy', [
             'application' => $application->id,
         ], $this->output);
+    }
+
+    protected function updateCommands(Environment $environment): void
+    {
+        $this->loopUntilValid(
+            function () use ($environment) {
+                $buildCommand = textarea(
+                    label: 'Build command',
+                    default: $environment->buildCommand,
+                    required: true,
+                );
+
+                if ($buildCommand === $environment->buildCommand) {
+                    return;
+                }
+
+                return dynamicSpinner(
+                    fn () => $this->client->updateEnvironment($environment->id, [
+                        'build_command' => $buildCommand,
+                    ]),
+                    'Updating build command',
+                );
+            },
+        );
+
+        $this->loopUntilValid(
+            function () use ($environment) {
+                $deployCommand = textarea(
+                    label: 'Deploy command',
+                    default: $environment->deployCommand,
+                    required: true,
+                );
+
+                if ($deployCommand === $environment->deployCommand) {
+                    return;
+                }
+
+                return dynamicSpinner(
+                    fn () => $this->client->updateEnvironment($environment->id, [
+                        'deploy_command' => $deployCommand,
+                    ]),
+                    'Updating deploy command',
+                );
+            },
+        );
     }
 
     protected function createApplication(ValidationErrors $errors, string $defaultRegion, string $repository): ?Application
@@ -184,15 +211,19 @@ class Ship extends Command
         $enableOptions = [
             'scheduler' => 'Laravel Scheduler',
             'hibernation' => 'Hibernation',
-            'database' => 'Database',
+            'database' => 'Database Cluster',
         ];
 
-        if ($composer->hasPackage('inertiajs/inertia-laravel')) {
-            $enableOptions['inertia_ssr'] = 'Inertia SSR';
-        }
+        $packages = [
+            'inertiajs/inertia-laravel' => ['inertia_ssr' => 'Inertia SSR'],
+            'laravel/octane' => ['octane' => 'Laravel Octane'],
+            'laravel/reverb' => ['reverb' => 'Laravel Reverb'],
+        ];
 
-        if ($composer->hasPackage('laravel/octane')) {
-            $enableOptions['octane'] = 'Laravel Octane';
+        foreach ($packages as $package => $options) {
+            if ($composer->hasPackage($package)) {
+                $enableOptions = array_merge($enableOptions, $options);
+            }
         }
 
         $selectedOptions = multiselect(
@@ -286,8 +317,7 @@ class Ship extends Command
             $createDatabase = confirm('Do you want to create a new database?');
 
             if ($createDatabase) {
-                dd('Implement create database');
-                // $database = $this->client->createDatabase($environment->id);
+                return $this->createDatabase();
             }
 
             return null;
@@ -303,10 +333,43 @@ class Ship extends Command
         );
 
         if ($database === 'new') {
-            dd('Implement create database');
+            return $this->createDatabase();
         }
 
         return collect($databases->data)->firstWhere('id', $database);
+    }
+
+    protected function createDatabase(): ?Database
+    {
+        $name = text(
+            label: 'Database cluster name',
+            required: true,
+            default: str($this->appName)->snake()->replace('-', '_')->toString(),
+            validate: fn ($value) => preg_match('/^[a-zA-Z0-9_]+$/', $value) ? null : 'Must contain only letters, numbers and underscores',
+        );
+
+        info('More information about Cloud Database Clusters: https://cloud.laravel.com/docs/resources/databases');
+
+        $types = $this->client->listDatabaseTypes();
+
+        $selectedType = select(
+            label: 'Database cluster type',
+            options: collect($types)->mapWithKeys(fn (DatabaseType $type) => [$type->type => $type->label]),
+            required: true,
+        );
+
+        $type = collect($types)->firstWhere('type', $selectedType);
+
+        $regions = collect($type->regions)->mapWithKeys(fn (string $region) => [$region => CloudRegion::from($region)->label()]);
+
+        $region = select(
+            label: 'Database cluster region',
+            options: $regions,
+            required: true,
+            default: in_array($this->region, $type->regions) ? $this->region : null,
+        );
+
+        dd($name, $type, $region);
     }
 
     protected function pushCustomEnvironmentVariables(Application $application): void
