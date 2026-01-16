@@ -20,7 +20,8 @@ class CloudClient
     ) {
         $this->client = Http::withToken($this->apiKey)
             ->baseUrl('https://cloud.laravel.com/api')
-            ->accept('application/json');
+            ->accept('application/json')
+            ->throw();
     }
 
     /**

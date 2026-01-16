@@ -11,6 +11,7 @@ use App\Enums\CloudRegion;
 use App\Git;
 use Carbon\CarbonInterval;
 use Dotenv\Dotenv;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Composer;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Sleep;
@@ -37,6 +38,10 @@ class Ship extends Command
     protected $signature = 'ship';
 
     protected $description = 'Ship the application to Laravel Cloud';
+
+    protected ?string $appName = null;
+
+    protected ?string $region = null;
 
     public function handle(Git $git)
     {
@@ -77,25 +82,52 @@ class Ship extends Command
             }
         }
 
-        $appName = text(
+        appName:
+        $this->appName = text(
             label: 'Application name',
-            default: $git->currentDirectoryName(),
+            default: $this->appName ?? $git->currentDirectoryName(),
             required: true,
         );
 
         $mostUsedRegion = collect($applications->data)->pluck('region')->countBy()->sortDesc()->keys()->first();
         $defaultRegion = CloudRegion::tryFrom($mostUsedRegion ?? '')?->value ?? CloudRegion::US_EAST_2->value;
 
-        $region = select(
+        region:
+        $this->region = select(
             label: 'Application region',
             options: collect(CloudRegion::cases())->mapWithKeys(fn (CloudRegion $region) => [$region->value => $region->label()]),
-            default: $defaultRegion,
+            default: $this->region ?? $defaultRegion,
         );
 
-        $application = dynamicSpinner(
-            fn () => $this->client->createApplication($repository, $appName, $region),
-            'Creating application'
-        );
+        try {
+            $application = dynamicSpinner(
+                fn () => $this->client->createApplication($repository, $this->appName, $this->region),
+                'Creating application'
+            );
+        } catch (RequestException $e) {
+            if ($e->response->status() === 422) {
+                $errors = $e->response->json()['errors'] ?? [];
+
+                if (count($errors) === 0) {
+                    error('Failed to create application: '.$errors['message']);
+                }
+
+                foreach ($errors as $field => $messages) {
+                    error(ucwords($field).': '.implode(', ', $messages));
+                }
+
+                if (($errors['name'] ?? false)) {
+                    goto appName;
+                }
+
+                if (($errors['region'] ?? false)) {
+                    goto region;
+                }
+            }
+
+            error('Failed to create application: '.$e->getMessage());
+            goto appName;
+        }
 
         if (! $application) {
             error('Failed to create application: '.($application['message'] ?? 'Unknown error'));
