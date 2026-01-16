@@ -16,6 +16,7 @@ class Deployment
         public readonly ?string $commitAuthor = null,
         public readonly ?CarbonImmutable $startedAt = null,
         public readonly ?CarbonImmutable $finishedAt = null,
+        public readonly ?string $failureReason = null,
     ) {
         //
     }
@@ -33,6 +34,7 @@ class Deployment
             commitAuthor: $commit['author'] ?? $attributes['commit_author'] ?? null,
             startedAt: $attributes['started_at'] ? CarbonImmutable::parse($attributes['started_at']) : null,
             finishedAt: $attributes['finished_at'] ? CarbonImmutable::parse($attributes['finished_at']) : null,
+            failureReason: $attributes['failure_reason'] ?? null,
         );
     }
 
@@ -67,7 +69,7 @@ class Deployment
 
     public function isFailed(): bool
     {
-        return $this->status === DeploymentStatus::DEPLOYMENT_FAILED;
+        return $this->status === DeploymentStatus::DEPLOYMENT_FAILED || $this->status === DeploymentStatus::BUILD_FAILED;
     }
 
     public function isCancelled(): bool

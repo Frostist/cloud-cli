@@ -86,6 +86,11 @@ class Deploy extends Command
 
         $deployment = $this->client->getDeployment($deployment->id);
 
+        if ($deployment->isFailed()) {
+            error('Deployment failed: '.$deployment->failureReason);
+            exit(1);
+        }
+
         success('Deployment completed in <comment>'.$deployment->totalTime()->format('%I:%S').'</comment>');
 
         if ($environment->url) {
@@ -117,7 +122,7 @@ class Deploy extends Command
             Sleep::for(CarbonInterval::milliseconds($updateInterval));
             $count++;
             $checkApi = $count % $checkInterval === 0;
-        } while (! $deploymentStatus->isCompleted());
+        } while ($deploymentStatus->isInProgress());
     }
 
     protected function getDeploymentMessage(Deployment $deployment): string
