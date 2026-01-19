@@ -32,7 +32,7 @@ class CloudClient
     public function listApplications(): Paginated
     {
         $response = $this->get('/applications', [
-            'include' => implode(',', ['organization', 'environments', 'defaultEnvironment']),
+            'include' => $this->include('organization', 'environments', 'defaultEnvironment'),
         ]);
 
         return new Paginated(
@@ -68,7 +68,7 @@ class CloudClient
     public function getApplication(string $applicationId): Application
     {
         $response = $this->get("/applications/{$applicationId}", [
-            'include' => implode(',', ['organization', 'environments', 'defaultEnvironment']),
+            'include' => $this->include('organization', 'environments', 'defaultEnvironment'),
         ]);
 
         return Application::fromApiResponse($response['data']);
@@ -90,7 +90,7 @@ class CloudClient
     public function getEnvironment(string $environmentId): Environment
     {
         $response = $this->get("/environments/{$environmentId}", [
-            'include' => implode(',', ['instances', 'currentDeployment']),
+            'include' => $this->include('instances', 'currentDeployment'),
         ]);
 
         return Environment::fromApiResponse($response['data']);
@@ -176,8 +176,6 @@ class CloudClient
             'include' => implode(',', ['schemas']),
         ]);
 
-        dump($response);
-
         return new Paginated(
             data: array_map(fn ($item) => Database::fromApiResponse($item, $response), $response['data']),
             links: $response['links'],
@@ -197,9 +195,14 @@ class CloudClient
     public function getDatabase(string $databaseId): Database
     {
         $response = $this->get("/databases/{$databaseId}", [
-            'include' => implode(',', ['schemas']),
+            'include' => $this->include('schemas'),
         ]);
 
         return Database::fromApiResponse($response['data'], $response);
+    }
+
+    protected function include(string ...$includes): string
+    {
+        return implode(',', $includes);
     }
 }
