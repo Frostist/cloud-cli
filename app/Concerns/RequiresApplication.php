@@ -15,13 +15,14 @@ trait RequiresApplication
     protected function getCloudApplication(Collection $apps): Application
     {
         if ($this->argument('application')) {
+            // TODO: What if there isn't one
             $app = $apps->firstWhere('id', $this->argument('application'));
             answered(label: 'Application', answer: "{$app->name}");
 
             return $app;
         }
 
-        if ($apps->count() === 1) {
+        if ($apps->containsOneItem()) {
             $app = $apps->first();
             answered(label: 'Application', answer: "{$app->name}");
 

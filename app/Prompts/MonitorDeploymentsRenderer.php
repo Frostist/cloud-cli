@@ -73,9 +73,7 @@ class MonitorDeploymentsRenderer extends Renderer
             $this->lineWithBorder($message);
             $this->lineWithBorder('');
 
-            $timeElapsed = $monitor->deployment->startedAt?->diff(CarbonImmutable::now());
-
-            $this->lineWithBorder($this->dim($timeElapsed?->format('%I:%S') ?? '00:00').' '.$monitor->deployment->status->label().$this->ellipsisFrames[$monitor->ellipsisCount % count($this->ellipsisFrames)]);
+            $this->lineWithBorder($this->dim($monitor->deployment->timeElapsed()->format('%I:%S')).' '.$monitor->deployment->status->label().$this->ellipsisFrames[$monitor->ellipsisCount % count($this->ellipsisFrames)]);
         }
 
         if ($monitor->autoExitAt) {

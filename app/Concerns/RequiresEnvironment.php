@@ -21,8 +21,8 @@ trait RequiresEnvironment
             return $environment;
         }
 
-        if (count($environments) === 1) {
-            $environment = $environments[0];
+        if ($environments->containsOneItem()) {
+            $environment = $environments->first();
             answered(label: 'Environment', answer: "{$environment->name}");
 
             return $environment;

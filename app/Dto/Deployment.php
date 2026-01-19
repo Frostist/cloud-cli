@@ -64,6 +64,15 @@ class Deployment
         return $this->finishedAt->diff($this->startedAt);
     }
 
+    public function timeElapsed(): CarbonInterval
+    {
+        if (! $this->startedAt) {
+            return CarbonInterval::seconds(0);
+        }
+
+        return $this->startedAt->diff(CarbonImmutable::now());
+    }
+
     public function isPending(): bool
     {
         return $this->status === DeploymentStatus::PENDING;
@@ -79,24 +88,24 @@ class Deployment
         return $this->status === DeploymentStatus::DEPLOYMENT_RUNNING;
     }
 
-    public function isCompleted(): bool
+    public function succeeded(): bool
     {
         return $this->status === DeploymentStatus::DEPLOYMENT_SUCCEEDED;
     }
 
-    public function isFailed(): bool
+    public function failed(): bool
     {
         return $this->status === DeploymentStatus::DEPLOYMENT_FAILED || $this->status === DeploymentStatus::BUILD_FAILED;
     }
 
-    public function isCancelled(): bool
+    public function wasCancelled(): bool
     {
         return $this->status === DeploymentStatus::CANCELLED;
     }
 
     public function isFinished(): bool
     {
-        return $this->isCompleted() || $this->isFailed() || $this->isCancelled();
+        return $this->succeeded() || $this->failed() || $this->wasCancelled();
     }
 
     public function isInProgress(): bool

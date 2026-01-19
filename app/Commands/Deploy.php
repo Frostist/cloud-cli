@@ -9,7 +9,6 @@ use App\Concerns\RequiresRemoteGitRepo;
 use App\Concerns\UpdatesBuildDeployCommands;
 use App\Dto\Deployment;
 use App\Git;
-use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Process;
@@ -96,7 +95,7 @@ class Deploy extends Command
 
         $deployment = $this->client->getDeployment($deployment->id);
 
-        if ($deployment->isFailed()) {
+        if ($deployment->failed()) {
             error('Deployment failed: '.$deployment->failureReason);
 
             if (confirm('Do you want to edit the build and deploy commands and try again?')) {
@@ -106,6 +105,7 @@ class Deploy extends Command
                     Artisan::call('deploy', [
                         'application' => $app->id,
                         'environment' => $environment->name,
+                        '--open' => $this->option('open'),
                     ], $this->output);
 
                     exit(0);
@@ -155,8 +155,6 @@ class Deploy extends Command
 
     protected function getDeploymentMessage(Deployment $deployment): string
     {
-        $timeElapsed = $deployment->startedAt?->diff(CarbonImmutable::now());
-
-        return $this->dim($timeElapsed?->format('%I:%S') ?? '00:00').' '.$deployment->status->label();
+        return $this->dim($deployment->timeElapsed()->format('%I:%S')).' '.$deployment->status->label();
     }
 }
