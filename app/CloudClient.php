@@ -15,6 +15,7 @@ use App\Dto\Paginated;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Psr\Http\Message\RequestInterface;
+use SensitiveParameter;
 
 class CloudClient
 {
@@ -25,8 +26,10 @@ class CloudClient
 
     protected array $includes = [];
 
-    public function __construct(protected string $apiKey)
-    {
+    public function __construct(
+        #[SensitiveParameter]
+        protected string $apiKey
+    ) {
         $this->client = Http::withToken($this->apiKey)
             ->baseUrl('https://cloud.laravel.com/api')
             ->acceptJson()
