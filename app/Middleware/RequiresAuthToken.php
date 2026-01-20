@@ -12,13 +12,17 @@ class RequiresAuthToken implements CommandMiddleware
 
     public function handle($command, callable $next)
     {
+        if ($command === 'list') {
+            return $next();
+        }
+
         $commandClass = Artisan::all()[$command] ?? null;
 
         if ($commandClass === null || $commandClass instanceof NoAuthRequired) {
             return $next();
         }
 
-        $this->ensureClient();
+        $this->ensureApiTokenExists();
 
         return $next();
     }

@@ -20,6 +20,18 @@ trait HasAClient
         $this->client = new CloudClient($apiToken);
     }
 
+    protected function ensureApiTokenExists(): void
+    {
+        $config = app(ConfigRepository::class);
+        $apiTokens = $config->apiTokens();
+
+        if ($apiTokens->isNotEmpty()) {
+            return;
+        }
+
+        $this->resolveApiToken();
+    }
+
     protected function resolveApiToken(): string
     {
         $config = app(ConfigRepository::class);
