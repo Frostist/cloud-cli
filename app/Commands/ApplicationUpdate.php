@@ -5,14 +5,12 @@ namespace App\Commands;
 use App\Concerns\HasAClient;
 use App\Concerns\RequiresApplication;
 use App\Concerns\Validates;
-use Illuminate\Http\Client\RequestException;
 use Laravel\Prompts\Concerns\Colors;
 use LaravelZero\Framework\Commands\Command;
 
 use function Laravel\Prompts\error;
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\outro;
-use function Laravel\Prompts\spin;
 
 class ApplicationUpdate extends Command
 {
@@ -35,7 +33,7 @@ class ApplicationUpdate extends Command
 
         if (! $this->option('json')) {
             if ($this->argument('application')) {
-                intro('Updating application: ' . $this->argument('application'));
+                intro('Updating application: '.$this->argument('application'));
             } else {
                 intro('Updating application');
             }
@@ -60,7 +58,7 @@ class ApplicationUpdate extends Command
         }
 
         $application = $this->loopUntilValid(
-            fn($errors) => $this->client->updateApplication($application->id, $data),
+            fn ($errors) => $this->client->updateApplication($application->id, $data),
             'Updating application'
         );
 

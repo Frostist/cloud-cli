@@ -3,7 +3,7 @@
 namespace App\Commands;
 
 use App\Concerns\HasAClient;
-use App\Concerns\RequiresDatabase;
+use App\Concerns\RequiresDatabaseCluster;
 use Laravel\Prompts\Concerns\Colors;
 use LaravelZero\Framework\Commands\Command;
 
@@ -25,7 +25,7 @@ class DatabaseGet extends Command
 
         if (! $this->option('json')) {
             if ($this->argument('database')) {
-                intro('Database Cluster Details: ' . $this->argument('database'));
+                intro('Database Cluster Details: '.$this->argument('database'));
             } else {
                 intro('Database Cluster Details');
             }

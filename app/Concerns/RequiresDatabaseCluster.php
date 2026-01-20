@@ -26,7 +26,7 @@ trait RequiresDatabaseCluster
                 if (str_starts_with($identifier, 'db-')) {
                     try {
                         $database = spin(
-                            fn() => $this->client->getDatabase($identifier),
+                            fn () => $this->client->getDatabase($identifier),
                             'Fetching database...'
                         );
                     } catch (Exception $e) {
@@ -58,7 +58,7 @@ trait RequiresDatabaseCluster
 
         $selectedDatabase = select(
             label: 'Database',
-            options: $databases->mapWithKeys(fn($database) => [$database->id => $database->name]),
+            options: $databases->mapWithKeys(fn ($database) => [$database->id => $database->name]),
         );
 
         return $databases->firstWhere('id', $selectedDatabase);
@@ -82,7 +82,7 @@ trait RequiresDatabaseCluster
     protected function fetchDatabases(): Collection
     {
         return collect(spin(
-            fn() => $this->client->listDatabases(),
+            fn () => $this->client->listDatabases(),
             'Fetching databases...'
         )->data);
     }

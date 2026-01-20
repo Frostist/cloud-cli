@@ -26,7 +26,7 @@ trait RequiresApplication
                 if (str_starts_with($identifier, 'app-')) {
                     try {
                         $app = spin(
-                            fn() => $this->client->getApplication($identifier),
+                            fn () => $this->client->getApplication($identifier),
                             'Fetching application...'
                         );
                     } catch (Exception $e) {
@@ -58,7 +58,7 @@ trait RequiresApplication
 
         $selectedApp = select(
             label: 'Application',
-            options: $apps->mapWithKeys(fn($app) => [$app->id => $app->name]),
+            options: $apps->mapWithKeys(fn ($app) => [$app->id => $app->name]),
         );
 
         return $apps->firstWhere('id', $selectedApp);
@@ -82,7 +82,7 @@ trait RequiresApplication
     protected function fetchApplications(): Collection
     {
         return collect(spin(
-            fn() => $this->client->listApplications(),
+            fn () => $this->client->listApplications(),
             'Fetching applications...'
         )->data);
     }
