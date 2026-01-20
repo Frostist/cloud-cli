@@ -13,7 +13,7 @@ class DatabaseGet extends Command
 {
     use Colors;
     use HasAClient;
-    use RequiresDatabase;
+    use RequiresDatabaseCluster;
 
     protected $signature = 'database:get {database? : The database ID or name} {--json : Output as JSON}';
 
@@ -25,7 +25,7 @@ class DatabaseGet extends Command
 
         if (! $this->option('json')) {
             if ($this->argument('database')) {
-                intro('Database Cluster Details: '.$this->argument('database'));
+                intro('Database Cluster Details: ' . $this->argument('database'));
             } else {
                 intro('Database Cluster Details');
             }
