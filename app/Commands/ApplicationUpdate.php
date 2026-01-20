@@ -3,6 +3,8 @@
 namespace App\Commands;
 
 use App\Concerns\HasAClient;
+use App\Concerns\RequiresApplication;
+use App\Concerns\Validates;
 use Illuminate\Http\Client\RequestException;
 use Laravel\Prompts\Concerns\Colors;
 use LaravelZero\Framework\Commands\Command;
@@ -16,9 +18,11 @@ class ApplicationUpdate extends Command
 {
     use Colors;
     use HasAClient;
+    use RequiresApplication;
+    use Validates;
 
     protected $signature = 'application:update
-                            {application : The application ID}
+                            {application? : The application ID or name}
                             {--name= : Application name}
                             {--slack-channel= : Slack channel for notifications}
                             {--json : Output as JSON}';
@@ -29,7 +33,15 @@ class ApplicationUpdate extends Command
     {
         $this->ensureClient();
 
-        intro('Updating application');
+        if (! $this->option('json')) {
+            if ($this->argument('application')) {
+                intro('Updating application: ' . $this->argument('application'));
+            } else {
+                intro('Updating application');
+            }
+        }
+
+        $application = $this->getCloudApplication(showPrompt: false);
 
         $data = [];
 
@@ -47,34 +59,19 @@ class ApplicationUpdate extends Command
             return 1;
         }
 
-        try {
-            $application = spin(
-                fn () => $this->client->updateApplication($this->argument('application'), $data),
-                'Updating application...'
-            );
+        $application = $this->loopUntilValid(
+            fn($errors) => $this->client->updateApplication($application->id, $data),
+            'Updating application'
+        );
 
-            if ($this->option('json')) {
-                $this->line(json_encode([
-                    'id' => $application->id,
-                    'name' => $application->name,
-                    'updated_at' => $application->updatedAt?->toIso8601String(),
-                ], JSON_PRETTY_PRINT));
+        if ($this->option('json')) {
+            $this->line($application->toJson());
 
-                return;
-            }
+            return;
+        }
 
+        if (! $this->option('json')) {
             outro("Application updated: {$application->name}");
-        } catch (RequestException $e) {
-            if ($e->response?->status() === 422) {
-                $errors = $e->response->json()['errors'] ?? [];
-                foreach ($errors as $field => $messages) {
-                    error(ucwords($field).': '.implode(', ', $messages));
-                }
-            } else {
-                error('Failed to update application: '.$e->getMessage());
-            }
-
-            return 1;
         }
     }
 }
