@@ -6,6 +6,8 @@ use App\CloudClient;
 use App\ConfigRepository;
 
 use function Laravel\Prompts\password;
+use function Laravel\Prompts\select;
+use function Laravel\Prompts\spin;
 
 trait HasAClient
 {
@@ -13,32 +15,59 @@ trait HasAClient
 
     protected function ensureClient()
     {
-        $apiKey = $this->resolveApiKey();
+        $apiToken = $this->resolveApiToken();
 
-        $this->client = new CloudClient($apiKey);
+        $this->client = new CloudClient($apiToken);
     }
 
-    protected function resolveApiKey(): string
+    protected function resolveApiToken(): string
     {
         $config = app(ConfigRepository::class);
-        $apiKey = $config->get('api_key');
+        $apiTokens = $config->apiTokens();
 
-        if ($apiKey) {
-            return $apiKey[0];
+        if ($apiTokens->containsOneItem()) {
+            return $apiTokens->first();
         }
 
-        info('No API key found!');
-        info('Learn how to generate a key: https://cloud.laravel.com/docs/api/authentication#create-an-api-token');
+        if ($apiTokens->containsManyItems()) {
+            // TODO: Refactor once we have proper endpoints for orgs
+            $orgs = spin(
+                function () use ($apiTokens) {
+                    return $apiTokens->mapWithKeys(function ($token) {
+                        $client = new CloudClient($token);
 
-        $apiKey = password(
-            label: 'Laravel Cloud API key',
+                        $application = $client->listApplications()->data[0] ?? null;
+
+                        if (! $application || ! $application->organization) {
+                            return [$token => $token];
+                        }
+
+                        return [$token => $application->organization->name];
+                    });
+                },
+                'Fetching token details'
+            );
+
+            $apiToken = select(
+                label: 'Select an organization',
+                options: $orgs->toArray(),
+            );
+
+            return $apiToken;
+        }
+
+        info('No API tokens found!');
+        info('Learn how to create an API token: https://cloud.laravel.com/docs/api/authentication#create-an-api-token');
+
+        $apiToken = password(
+            label: 'Laravel Cloud API token',
             required: true,
         );
 
-        $config->set('api_key', [$apiKey]);
+        $config->addApiToken($apiToken);
 
-        info('API key saved to '.$config->path());
+        info('API token saved to '.$config->path());
 
-        return $apiKey;
+        return $apiToken;
     }
 }

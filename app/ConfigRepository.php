@@ -2,6 +2,8 @@
 
 namespace App;
 
+use Illuminate\Support\Collection;
+
 class ConfigRepository
 {
     protected string $configPath;
@@ -17,6 +19,26 @@ class ConfigRepository
     public function get(string $key, mixed $default = null): mixed
     {
         return $this->config[$key] ?? $default;
+    }
+
+    /**
+     * @return Collection<string>
+     */
+    public function apiTokens(): Collection
+    {
+        return collect($this->get('api_tokens', []));
+    }
+
+    public function addApiToken(string $token): void
+    {
+        $this->config['api_tokens'] = $this->apiTokens()->push($token);
+        $this->save();
+    }
+
+    public function removeApiToken(string $token): void
+    {
+        $this->config['api_tokens'] = $this->apiTokens()->reject(fn ($t) => $t === $token);
+        $this->save();
     }
 
     public function set(string $key, mixed $value): void
