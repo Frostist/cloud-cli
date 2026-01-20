@@ -2,8 +2,6 @@
 
 namespace App\Dto;
 
-use Illuminate\Http\Client\Response;
-
 class DatabaseType
 {
     public function __construct(
@@ -15,11 +13,10 @@ class DatabaseType
         //
     }
 
-    public static function fromApiResponse(Response $response, ?array $item = null): self
+    public static function fromApiResponse(array $response, ?array $item = null): self
     {
-        $responseData = $response->json();
-        $data = $item ?? ($responseData['data'] ?? $responseData);
-        $included = $responseData['included'] ?? [];
+        $data = $item ?? $response['data'] ?? [];
+        $included = $response['included'] ?? [];
 
         return new self(
             type: $data['type'],

@@ -33,14 +33,13 @@ class ApplicationGet extends Command
             return;
         }
 
-        dd($application);
-
         dataList([
             'Name' => $application->name,
             'ID' => $application->id,
             'Region' => $application->region,
-            'Repository' => 'https://github.com/' . $application->repositoryFullName,
-            'Environments' => $application->environmentIds,
+            'Repository' => 'https://github.com/'.$application->repositoryFullName,
+            'Environments' => collect($application->environments)->map(fn ($env) => $env->name.' '.$this->dim($env->id).'')->toArray(),
+            'Organization' => $application->organization->name.' '.$this->dim($application->organization->id).'',
         ]);
     }
 }
