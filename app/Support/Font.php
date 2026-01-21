@@ -86,10 +86,15 @@ class Font
         return new self($mappedCharacters->toArray());
     }
 
+    public function characterWidth(): int
+    {
+        return mb_strwidth($this->characters['A'][0]);
+    }
+
     public function message(string $message): array
     {
         return collect(str_split($message))
-            ->map(fn ($character) => $this->characters[$character])
+            ->map(fn ($character) => $this->characters[$character] ?? null)
             ->toArray();
     }
 }
