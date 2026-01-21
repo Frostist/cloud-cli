@@ -6,6 +6,8 @@ use App\Middleware\CommandMiddlewareManager;
 use App\Middleware\RequiresAuthToken;
 use App\Middleware\SuppressOutputIfJson;
 use App\Prompts\Answered;
+use App\Prompts\DynamicSpinner;
+use App\Prompts\SpinnerRenderer;
 use App\Prompts\TextPromptRenderer;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Support\Facades\Event;
@@ -41,6 +43,7 @@ class AppServiceProvider extends ServiceProvider
             });
 
         $renderers->offsetSet(Answered::class, TextPromptRenderer::class);
+        $renderers->offsetSet(DynamicSpinner::class, SpinnerRenderer::class);
 
         Prompt::addTheme('cloud', $renderers->toArray());
         Prompt::theme('cloud');
