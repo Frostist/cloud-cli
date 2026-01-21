@@ -6,7 +6,7 @@ use App\Contracts\NoAuthRequired;
 use App\Prompts\Renderer;
 use Illuminate\Support\Facades\Artisan;
 
-class SupressOutputIfJson implements CommandMiddleware
+class SuppressOutputIfJson implements CommandMiddleware
 {
     public function handle($command, callable $next)
     {
@@ -20,7 +20,9 @@ class SupressOutputIfJson implements CommandMiddleware
             return $next();
         }
 
-        Renderer::$suppressOutput = in_array('--json', $_SERVER['argv'] ?? []);
+        $args = $_SERVER['argv'] ?? [];
+
+        Renderer::$suppressOutput = collect($args)->intersect(['--json', '--no-interaction'])->isNotEmpty();
 
         return $next();
     }

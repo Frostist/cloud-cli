@@ -2,7 +2,6 @@
 
 namespace App\Commands;
 
-use App\Concerns\MightWantJson;
 use Laravel\Prompts\Concerns\Colors;
 use LaravelZero\Framework\Commands\Command;
 use RuntimeException;
@@ -14,7 +13,6 @@ use function Laravel\Prompts\outro;
 abstract class BaseCommand extends Command
 {
     use Colors;
-    use MightWantJson;
 
     protected function intro(string $title, ?string $suffix = null): void
     {
@@ -47,7 +45,45 @@ abstract class BaseCommand extends Command
 
     protected function isInteractive(): bool
     {
-        return stream_isatty(STDIN) && ! $this->wantsJson();
+        if ($this->option('no-interaction')) {
+            return false;
+        }
+
+        if ($this->isNonInteractiveEnvironment()) {
+            return false;
+        }
+
+        if (! stream_isatty(STDIN)) {
+            return false;
+        }
+
+        if ($this->requestedJson()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    protected function isNonInteractiveEnvironment(): bool
+    {
+        $envs = [
+            'CI',
+            'CURSOR',
+            'GITHUB_ACTIONS',
+            'GITLAB_CI',
+            'JENKINS_URL',
+            'CIRCLECI',
+            'TRAVIS',
+            'AGENT_MODE',
+        ];
+
+        foreach ($envs as $env) {
+            if (! empty(getenv($env))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     protected function outputErrorOrThrow(string $message): void
@@ -56,6 +92,29 @@ abstract class BaseCommand extends Command
             error($message);
         } else {
             throw new RuntimeException($message);
+        }
+    }
+
+    protected function requestedJson(): bool
+    {
+        return $this->hasOption('json') && $this->option('json');
+    }
+
+    protected function wantsJson(): bool
+    {
+        if ($this->requestedJson() || ! $this->isInteractive()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    protected function outputJsonIfWanted(mixed $data): void
+    {
+        if ($this->wantsJson()) {
+            $this->line($data->toJson());
+
+            exit(0);
         }
     }
 }

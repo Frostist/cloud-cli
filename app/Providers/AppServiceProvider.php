@@ -4,7 +4,7 @@ namespace App\Providers;
 
 use App\Middleware\CommandMiddlewareManager;
 use App\Middleware\RequiresAuthToken;
-use App\Middleware\SupressOutputIfJson;
+use App\Middleware\SuppressOutputIfJson;
 use App\Prompts\Answered;
 use App\Prompts\TextPromptRenderer;
 use Illuminate\Console\Events\CommandStarting;
@@ -56,7 +56,7 @@ class AppServiceProvider extends ServiceProvider
         $manager = $this->app->make(CommandMiddlewareManager::class);
 
         $manager->register(RequiresAuthToken::class);
-        $manager->register(SupressOutputIfJson::class);
+        $manager->register(SuppressOutputIfJson::class);
 
         if ($this->app->bound(EventDispatcherInterface::class)) {
             $dispatcher = $this->app->make(EventDispatcherInterface::class);
