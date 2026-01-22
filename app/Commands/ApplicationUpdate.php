@@ -19,14 +19,14 @@ class ApplicationUpdate extends BaseCommand
     use RequiresApplication;
     use Validates;
 
-    protected $signature = 'application:update'.
-        ' {application? : The application ID or name}'.
-        ' {--name= : Application name}'.
-        ' {--slack-channel= : Slack channel for notifications}'.
-        ' {--repository= : Repository URL}'.
-        ' {--avatar= : Avatar URL or full path to a file}'.
-        ' {--default-environment= : Default environment ID or name}'.
-        ' {--json : Output as JSON}';
+    protected $signature = 'application:update'
+        .' {application? : The application ID or name}'
+        .' {--name= : Application name}'
+        .' {--slack-channel= : Slack channel for notifications}'
+        .' {--repository= : Repository URL}'
+        .' {--avatar= : Avatar URL or full path to a file}'
+        .' {--default-environment= : Default environment ID or name}'
+        .' {--json : Output as JSON}';
 
     protected $description = 'Update an application';
 
@@ -89,7 +89,7 @@ class ApplicationUpdate extends BaseCommand
         }
 
         if ($this->isInteractive()) {
-            $data = $this->collectDataFromPrompts($data);
+            $data = $this->collectDataFromPrompts($data, $application);
         }
 
         if (empty($data)) {
@@ -139,7 +139,7 @@ class ApplicationUpdate extends BaseCommand
         $this->outro('Application updated');
     }
 
-    protected function collectDataFromPrompts(array $data): array
+    protected function collectDataFromPrompts(array $data, Application $application): array
     {
         do {
             $selection = select(
@@ -160,12 +160,12 @@ class ApplicationUpdate extends BaseCommand
             }
 
             $data[$selection] = match ($selection) {
-                'name' => $this->getNewName($application->name),
-                'slug' => $this->getNewSlug($application->slug),
-                'repository' => $this->getNewRepository($application->repositoryFullName),
+                'name' => $this->getNewName($data['name'] ?? $application->name),
+                'slug' => $this->getNewSlug($data['slug'] ?? $application->slug),
+                'repository' => $this->getNewRepository($data['repository'] ?? $application->repositoryFullName),
                 'avatar' => $this->getNewAvatar(),
-                'default_environment_id' => $this->getNewDefaultEnvironmentId($application),
-                'slack_channel' => $this->getNewSlackChannel($application->slackChannel ?? ''),
+                'default_environment_id' => $this->getNewDefaultEnvironmentId($data['default_environment_id'] ?? $application->defaultEnvironmentId),
+                'slack_channel' => $this->getNewSlackChannel($data['slack_channel'] ?? $application->slackChannel ?? ''),
             };
         } while ($selection !== 'done');
 
@@ -270,6 +270,7 @@ class ApplicationUpdate extends BaseCommand
             ->values();
 
         if (class_exists(\Imagick::class)) {
+            // We can convert non-supported images to PNG, we're good
             return $possiblePaths;
         }
 
