@@ -185,7 +185,12 @@ class ApplicationUpdate extends BaseCommand
             label: 'Name',
             required: true,
             default: $oldName,
-            validate: fn ($value) => strlen($value) > 3 && strlen($value) < 40 ? null : 'Name must be between 3 and 40 characters',
+            validate: fn ($value) => match (true) {
+                strlen($value) < 3 => 'Name must be at least 3 characters',
+                strlen($value) > 40 => 'Name must be less than 40 characters',
+                ! preg_match('/^[\p{Latin}0-9 _.\'-]+$/u', $value) => 'Name must contain only letters, numbers, spaces, and: _ . \' -',
+                default => null,
+            },
         );
     }
 
@@ -195,7 +200,10 @@ class ApplicationUpdate extends BaseCommand
             label: 'Slug',
             required: true,
             default: $oldSlug,
-            validate: fn ($value) => strlen($value) > 3 ? null : 'Slug must be at least 3 characters',
+            validate: fn ($value) => match (true) {
+                strlen($value) < 3 => 'Slug must be at least 3 characters',
+                default => null,
+            },
         );
     }
 

@@ -208,7 +208,12 @@ class Ship extends BaseCommand
                 label: 'Hibernate after',
                 default: '5',
                 required: true,
-                validate: fn ($value) => is_numeric($value) && intval($value) >= 1 && intval($value) <= 60 ? null : 'Must be a number between 1 and 60',
+                validate: fn ($value) => match (true) {
+                    ! is_numeric($value) => 'Must be a number',
+                    intval($value) < 1 => 'Must be at least 1',
+                    intval($value) > 60 => 'Must be less than 60',
+                    default => null,
+                },
                 hint: 'The number of minutes without HTTP requests received before your application hibernates (1-60)',
             );
 
@@ -266,16 +271,11 @@ class Ship extends BaseCommand
         $name = text(
             label: 'Database name',
             required: true,
-            validate: function ($value) {
-                if (! preg_match('/^[a-z0-9_-]+$/', $value)) {
-                    return 'Must contain only lowercase letters, numbers, and underscores';
-                }
-
-                if (strlen($value) < 3 || strlen($value) > 40) {
-                    return 'Must be between 3 and 40 characters';
-                }
-
-                return null;
+            validate: fn ($value) => match (true) {
+                ! preg_match('/^[a-z0-9_-]+$/', $value) => 'Must contain only lowercase letters, numbers, and underscores',
+                strlen($value) < 3 => 'Must be at least 3 characters',
+                strlen($value) > 40 => 'Must be less than 40 characters',
+                default => null,
             },
         );
 
@@ -321,7 +321,10 @@ class Ship extends BaseCommand
             label: 'Database cluster name',
             required: true,
             default: str($this->appName)->snake()->replace('-', '_')->toString(),
-            validate: fn ($value) => preg_match('/^[a-zA-Z0-9_]+$/', $value) ? null : 'Must contain only letters, numbers and underscores',
+            validate: fn ($value) => match (true) {
+                ! preg_match('/^[a-zA-Z0-9_]+$/', $value) => 'Must contain only letters, numbers and underscores',
+                default => null,
+            },
         );
 
         info('More information about Cloud Database Clusters: https://cloud.laravel.com/docs/resources/databases');
