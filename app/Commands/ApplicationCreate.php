@@ -8,7 +8,6 @@ use App\Concerns\Validates;
 use App\Dto\ValidationErrors;
 use App\Enums\CloudRegion;
 use App\Git;
-use RuntimeException;
 
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
@@ -34,6 +33,8 @@ class ApplicationCreate extends BaseCommand
 
     protected ?string $region = null;
 
+    protected ?string $defaultRegion = null;
+
     public function handle()
     {
         $this->ensureClient();
@@ -51,9 +52,7 @@ class ApplicationCreate extends BaseCommand
 
     protected function createApplication(ValidationErrors $errors)
     {
-        if ($errors->hasAny() && ! $this->isInteractive()) {
-            throw new RuntimeException($errors);
-        }
+        $this->breakValidationLoopIfNotInteractive($errors);
 
         $git = app(Git::class);
 
@@ -103,6 +102,10 @@ class ApplicationCreate extends BaseCommand
 
     protected function getDefaultRegion(): ?string
     {
+        if ($this->defaultRegion) {
+            return $this->defaultRegion;
+        }
+
         $applications = spin(
             fn () => $this->client->listApplications(),
             'Fetching applications...'
@@ -115,6 +118,8 @@ class ApplicationCreate extends BaseCommand
             ->keys()
             ->first();
 
-        return CloudRegion::tryFrom($mostUsedRegion ?? '')?->value ?? CloudRegion::US_EAST_2->value;
+        $this->defaultRegion = CloudRegion::tryFrom($mostUsedRegion ?? '')?->value ?? CloudRegion::US_EAST_2->value;
+
+        return $this->defaultRegion;
     }
 }

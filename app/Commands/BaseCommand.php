@@ -2,6 +2,7 @@
 
 namespace App\Commands;
 
+use App\Dto\ValidationErrors;
 use App\Support\ValueResolver;
 use Laravel\Prompts\Concerns\Colors;
 use LaravelZero\Framework\Commands\Command;
@@ -131,5 +132,18 @@ abstract class BaseCommand extends Command
             },
             $this->hasOption($argument) ? 'option' : 'argument',
         );
+    }
+
+    protected function breakValidationLoopIfNotInteractive(ValidationErrors $errors): void
+    {
+        if ($errors->hasAny() && ! $this->isInteractive()) {
+            if (! $this->wantsJson()) {
+                throw new RuntimeException($errors);
+            }
+
+            $this->line($errors->toJson());
+
+            exit(self::FAILURE);
+        }
     }
 }

@@ -35,4 +35,9 @@ class ValidationErrors
     {
         return implode(PHP_EOL, array_values($this->errors));
     }
+
+    public function toJson(): string
+    {
+        return json_encode($this->errors);
+    }
 }

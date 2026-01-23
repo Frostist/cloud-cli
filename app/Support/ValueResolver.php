@@ -56,10 +56,8 @@ class ValueResolver
             return null;
         }
 
-        if ($this->nonInteractivelyCallback) {
-            return app()->call($this->nonInteractivelyCallback, [$this->value]);
-
-            return ($this->nonInteractivelyCallback)($this->value);
+        if ($this->nonInteractivelyCallback && $result = ($this->nonInteractivelyCallback)($this->value)) {
+            return $result;
         }
 
         $message = match ($this->resolveFromType) {
