@@ -86,7 +86,7 @@ class CloudClient
             'variables' => collect($variables)->map(fn ($value, $key) => [
                 'key' => $key,
                 'value' => $value,
-            ])->toArray(),
+            ])->values()->toArray(),
         ]);
 
         return $response->json() ?? [];
