@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Artisan;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\error;
+use function Laravel\Prompts\intro;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\warning;
 
@@ -39,7 +40,7 @@ class DeployMonitor extends BaseCommand
         slideIn('EYES ON THE *SKY*');
         $this->newLine();
 
-        $this->intro('Monitoring application deployments');
+        intro('Monitoring application deployments');
 
         $this->ensureClient();
         $this->ensureRemoteGitRepo();

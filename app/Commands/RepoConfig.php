@@ -9,6 +9,8 @@ use App\Git;
 use App\LocalConfig;
 
 use function Laravel\Prompts\error;
+use function Laravel\Prompts\intro;
+use function Laravel\Prompts\outro;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\warning;
@@ -23,7 +25,7 @@ class RepoConfig extends BaseCommand
 
     public function handle(Git $git, LocalConfig $localConfig)
     {
-        $this->intro('Configure Repository Defaults');
+        intro('Configure Repository Defaults');
 
         if (! $git->isRepo()) {
             error('This directory is not a Git repository.');
@@ -59,7 +61,7 @@ class RepoConfig extends BaseCommand
 
         $localConfig->setMany($newValues);
 
-        $this->outro('Configuration saved to '.$localConfig->path());
+        outro('Configuration saved to '.$localConfig->path());
 
         return 0;
     }

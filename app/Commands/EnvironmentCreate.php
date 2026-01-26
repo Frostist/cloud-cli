@@ -6,6 +6,8 @@ use App\Concerns\HasAClient;
 use App\Concerns\Validates;
 use App\Dto\ValidationErrors;
 
+use function Laravel\Prompts\intro;
+use function Laravel\Prompts\outro;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\text;
 
@@ -30,7 +32,7 @@ class EnvironmentCreate extends BaseCommand
     {
         $this->ensureClient();
 
-        $this->intro('Creating environment');
+        intro('Creating environment');
 
         $applicationId = $this->argument('application');
 
@@ -49,7 +51,7 @@ class EnvironmentCreate extends BaseCommand
             return;
         }
 
-        $this->outro("Environment created: {$environment->name}");
+        outro("Environment created: {$environment->name}");
     }
 
     protected function createEnvironment(string $applicationId, ValidationErrors $errors)

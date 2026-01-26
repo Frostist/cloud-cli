@@ -6,6 +6,8 @@ use App\Concerns\HasAClient;
 use Illuminate\Http\Client\RequestException;
 
 use function Laravel\Prompts\error;
+use function Laravel\Prompts\intro;
+use function Laravel\Prompts\outro;
 use function Laravel\Prompts\spin;
 
 class BackgroundProcessUpdate extends BaseCommand
@@ -24,7 +26,7 @@ class BackgroundProcessUpdate extends BaseCommand
     {
         $this->ensureClient();
 
-        $this->intro('Updating background process');
+        intro('Updating background process');
 
         $data = [];
 
@@ -59,7 +61,7 @@ class BackgroundProcessUpdate extends BaseCommand
                 return;
             }
 
-            $this->outro("Background process updated: {$process->id}");
+            outro("Background process updated: {$process->id}");
         } catch (RequestException $e) {
             if ($e->response?->status() === 422) {
                 $errors = $e->response->json()['errors'] ?? [];

@@ -5,6 +5,7 @@ namespace App\Commands;
 use App\Concerns\HasAClient;
 
 use function Laravel\Prompts\info;
+use function Laravel\Prompts\intro;
 use function Laravel\Prompts\spin;
 
 class BackgroundProcessGet extends BaseCommand
@@ -19,7 +20,7 @@ class BackgroundProcessGet extends BaseCommand
     {
         $this->ensureClient();
 
-        $this->intro('Background Process Details');
+        intro('Background Process Details');
 
         $process = spin(
             fn () => $this->client->getBackgroundProcess($this->argument('process')),

@@ -16,6 +16,8 @@ use Illuminate\Support\Sleep;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\error;
+use function Laravel\Prompts\intro;
+use function Laravel\Prompts\outro;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\warning;
 
@@ -40,7 +42,7 @@ class Deploy extends BaseCommand
         slideIn('TO THE *CLOUD*');
         $this->newLine();
 
-        $this->intro('Deploying application to Laravel Cloud');
+        intro('Deploying application to Laravel Cloud');
 
         $this->ensureClient();
         $this->ensureRemoteGitRepo();
@@ -116,7 +118,7 @@ class Deploy extends BaseCommand
             Process::run('open '.$environment->url);
         }
 
-        $this->outro($environment->url);
+        outro($environment->url);
     }
 
     protected function updateDeploymentStatus(Deployment $deployment, callable $updateMessage): void

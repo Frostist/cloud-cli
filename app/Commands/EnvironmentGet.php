@@ -5,6 +5,7 @@ namespace App\Commands;
 use App\Concerns\HasAClient;
 
 use function Laravel\Prompts\info;
+use function Laravel\Prompts\intro;
 use function Laravel\Prompts\spin;
 
 class EnvironmentGet extends BaseCommand
@@ -19,7 +20,7 @@ class EnvironmentGet extends BaseCommand
     {
         $this->ensureClient();
 
-        $this->intro('Environment Details');
+        intro('Environment Details');
 
         $environment = spin(
             fn () => $this->client->getEnvironment($this->argument('environment')),

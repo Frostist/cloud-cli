@@ -9,6 +9,7 @@ use App\Concerns\Validates;
 use App\Dto\Application;
 use App\Git;
 
+use function Laravel\Prompts\outro;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\text;
@@ -137,7 +138,7 @@ class ApplicationUpdate extends BaseCommand
 
         $this->outputJsonIfWanted($application);
 
-        $this->outro('Application updated');
+        outro('Application updated');
     }
 
     protected function collectDataFromPrompts(array $data, Application $application): array

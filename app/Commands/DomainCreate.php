@@ -6,6 +6,8 @@ use App\Concerns\HasAClient;
 use Illuminate\Http\Client\RequestException;
 
 use function Laravel\Prompts\error;
+use function Laravel\Prompts\intro;
+use function Laravel\Prompts\outro;
 use function Laravel\Prompts\spin;
 
 class DomainCreate extends BaseCommand
@@ -23,7 +25,7 @@ class DomainCreate extends BaseCommand
     {
         $this->ensureClient();
 
-        $this->intro('Creating domain');
+        intro('Creating domain');
 
         try {
             $domain = spin(
@@ -45,7 +47,7 @@ class DomainCreate extends BaseCommand
                 return;
             }
 
-            $this->outro("Domain created: {$domain->domain}");
+            outro("Domain created: {$domain->domain}");
         } catch (RequestException $e) {
             if ($e->response?->status() === 422) {
                 $errors = $e->response->json()['errors'] ?? [];

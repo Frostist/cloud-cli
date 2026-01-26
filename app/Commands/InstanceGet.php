@@ -5,6 +5,7 @@ namespace App\Commands;
 use App\Concerns\HasAClient;
 
 use function Laravel\Prompts\info;
+use function Laravel\Prompts\intro;
 use function Laravel\Prompts\spin;
 
 class InstanceGet extends BaseCommand
@@ -19,7 +20,7 @@ class InstanceGet extends BaseCommand
     {
         $this->ensureClient();
 
-        $this->intro('Instance Details');
+        intro('Instance Details');
 
         $instance = spin(
             fn () => $this->client->getInstance($this->argument('instance')),

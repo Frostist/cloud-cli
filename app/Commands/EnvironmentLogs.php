@@ -11,6 +11,7 @@ use Carbon\CarbonInterval;
 use Illuminate\Support\Sleep;
 
 use function Laravel\Prompts\info;
+use function Laravel\Prompts\intro;
 use function Laravel\Prompts\spin;
 
 class EnvironmentLogs extends BaseCommand
@@ -34,7 +35,7 @@ class EnvironmentLogs extends BaseCommand
     {
         $this->ensureClient();
 
-        $this->intro('Environment Logs');
+        intro('Environment Logs');
 
         $app = $this->getCloudApplication();
         $environments = spin(

@@ -5,6 +5,7 @@ namespace App\Commands;
 use App\Concerns\HasAClient;
 
 use function Laravel\Prompts\info;
+use function Laravel\Prompts\intro;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\table;
 
@@ -20,7 +21,7 @@ class CommandList extends BaseCommand
     {
         $this->ensureClient();
 
-        $this->intro('Listing commands');
+        intro('Listing commands');
 
         $commands = spin(
             fn () => $this->client->listCommands($this->argument('environment')),

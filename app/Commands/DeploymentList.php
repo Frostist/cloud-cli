@@ -5,6 +5,7 @@ namespace App\Commands;
 use App\Concerns\HasAClient;
 
 use function Laravel\Prompts\info;
+use function Laravel\Prompts\intro;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\table;
 
@@ -20,7 +21,7 @@ class DeploymentList extends BaseCommand
     {
         $this->ensureClient();
 
-        $this->intro('Listing deployments');
+        intro('Listing deployments');
 
         $deployments = spin(
             fn () => $this->client->listDeployments($this->argument('environment')),

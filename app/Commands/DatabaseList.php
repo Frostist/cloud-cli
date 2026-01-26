@@ -5,6 +5,7 @@ namespace App\Commands;
 use App\Concerns\HasAClient;
 
 use function Laravel\Prompts\info;
+use function Laravel\Prompts\intro;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\table;
 
@@ -21,7 +22,7 @@ class DatabaseList extends BaseCommand
         $this->ensureClient();
 
         if (! $this->option('json')) {
-            $this->intro('Database Clusters');
+            intro('Database Clusters');
         }
 
         $databases = spin(

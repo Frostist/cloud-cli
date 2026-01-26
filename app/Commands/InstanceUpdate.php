@@ -6,6 +6,8 @@ use App\Concerns\HasAClient;
 use Illuminate\Http\Client\RequestException;
 
 use function Laravel\Prompts\error;
+use function Laravel\Prompts\intro;
+use function Laravel\Prompts\outro;
 use function Laravel\Prompts\spin;
 
 class InstanceUpdate extends BaseCommand
@@ -26,7 +28,7 @@ class InstanceUpdate extends BaseCommand
     {
         $this->ensureClient();
 
-        $this->intro('Updating instance');
+        intro('Updating instance');
 
         $data = [];
 
@@ -68,7 +70,7 @@ class InstanceUpdate extends BaseCommand
                 return;
             }
 
-            $this->outro("Instance updated: {$instance->name}");
+            outro("Instance updated: {$instance->name}");
         } catch (RequestException $e) {
             if ($e->response?->status() === 422) {
                 $errors = $e->response->json()['errors'] ?? [];

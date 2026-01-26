@@ -5,6 +5,7 @@ namespace App\Commands;
 use App\Concerns\HasAClient;
 
 use function Laravel\Prompts\info;
+use function Laravel\Prompts\intro;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\table;
 
@@ -20,7 +21,7 @@ class BackgroundProcessList extends BaseCommand
     {
         $this->ensureClient();
 
-        $this->intro('Listing background processes');
+        intro('Listing background processes');
 
         $processes = spin(
             fn () => $this->client->listBackgroundProcesses($this->argument('instance')),

@@ -5,6 +5,7 @@ namespace App\Commands;
 use App\Concerns\HasAClient;
 
 use function Laravel\Prompts\info;
+use function Laravel\Prompts\intro;
 use function Laravel\Prompts\spin;
 
 class CommandGet extends BaseCommand
@@ -19,7 +20,7 @@ class CommandGet extends BaseCommand
     {
         $this->ensureClient();
 
-        $this->intro('Command Details');
+        intro('Command Details');
 
         $cmd = spin(
             fn () => $this->client->getCommand($this->argument('command')),

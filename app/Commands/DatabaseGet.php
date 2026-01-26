@@ -5,6 +5,8 @@ namespace App\Commands;
 use App\Concerns\HasAClient;
 use App\Concerns\RequiresDatabaseCluster;
 
+use function Laravel\Prompts\intro;
+
 class DatabaseGet extends BaseCommand
 {
     use HasAClient;
@@ -20,9 +22,9 @@ class DatabaseGet extends BaseCommand
 
         if (! $this->option('json')) {
             if ($this->argument('database')) {
-                $this->intro('Database Cluster Details: '.$this->argument('database'));
+                intro('Database Cluster Details: '.$this->argument('database'));
             } else {
-                $this->intro('Database Cluster Details');
+                intro('Database Cluster Details');
             }
         }
 

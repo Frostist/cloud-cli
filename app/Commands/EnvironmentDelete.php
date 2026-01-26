@@ -8,6 +8,7 @@ use Illuminate\Http\Client\RequestException;
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\error;
 use function Laravel\Prompts\info;
+use function Laravel\Prompts\intro;
 use function Laravel\Prompts\spin;
 
 class EnvironmentDelete extends BaseCommand
@@ -24,7 +25,7 @@ class EnvironmentDelete extends BaseCommand
     {
         $this->ensureClient();
 
-        $this->intro('Deleting environment');
+        intro('Deleting environment');
 
         $environmentId = $this->argument('environment');
 

@@ -6,6 +6,8 @@ use App\Concerns\HasAClient;
 use Illuminate\Http\Client\RequestException;
 
 use function Laravel\Prompts\error;
+use function Laravel\Prompts\intro;
+use function Laravel\Prompts\outro;
 use function Laravel\Prompts\spin;
 
 class DomainUpdate extends BaseCommand
@@ -23,7 +25,7 @@ class DomainUpdate extends BaseCommand
     {
         $this->ensureClient();
 
-        $this->intro('Updating domain');
+        intro('Updating domain');
 
         $data = [];
 
@@ -54,7 +56,7 @@ class DomainUpdate extends BaseCommand
                 return;
             }
 
-            $this->outro("Domain updated: {$domain->domain}");
+            outro("Domain updated: {$domain->domain}");
         } catch (RequestException $e) {
             if ($e->response?->status() === 422) {
                 $errors = $e->response->json()['errors'] ?? [];

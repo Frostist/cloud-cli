@@ -8,6 +8,8 @@ use App\Concerns\Validates;
 use App\Enums\CloudRegion;
 use App\Git;
 
+use function Laravel\Prompts\intro;
+use function Laravel\Prompts\outro;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\text;
@@ -32,13 +34,13 @@ class ApplicationCreate extends BaseCommand
     {
         $this->ensureClient();
 
-        $this->intro('Creating application');
+        intro('Creating application');
 
         $application = $this->loopUntilValid($this->createApplication(...));
 
         $this->outputJsonIfWanted($application);
 
-        $this->outro("Application created: {$application->name}");
+        outro("Application created: {$application->name}");
     }
 
     protected function createApplication()
@@ -47,8 +49,8 @@ class ApplicationCreate extends BaseCommand
 
         $this->addParam(
             'name',
-            fn ($resolver) => $resolver->fromInput(
-                fn ($currentValue) => text(
+            fn($resolver) => $resolver->fromInput(
+                fn($currentValue) => text(
                     label: 'Application name',
                     default: $currentValue ?? basename(getcwd()),
                     required: true,
@@ -58,33 +60,33 @@ class ApplicationCreate extends BaseCommand
 
         $this->addParam(
             'repository',
-            fn ($resolver) => $resolver
-                ->fromInput(fn (?string $value) => text(
+            fn($resolver) => $resolver
+                ->fromInput(fn(?string $value) => text(
                     label: 'Repository',
                     required: true,
                     default: $value ?? ($git->hasGitHubRemote() ? $git->remoteRepo() : ''),
                 ))
-                ->nonInteractively(fn () => $git->hasGitHubRemote() ? $git->remoteRepo() : null),
+                ->nonInteractively(fn() => $git->hasGitHubRemote() ? $git->remoteRepo() : null),
         );
 
         $this->addParam(
             'region',
-            fn ($resolver) => $resolver
-                ->fromInput(fn (?string $value) => select(
+            fn($resolver) => $resolver
+                ->fromInput(fn(?string $value) => select(
                     label: 'Region',
                     options: collect(CloudRegion::cases())->mapWithKeys(
-                        fn (CloudRegion $region) => [
+                        fn(CloudRegion $region) => [
                             $region->value => $region->label(),
                         ],
                     ),
                     default: $value ?? $this->getDefaultRegion(),
                     required: true,
                 ))
-                ->nonInteractively(fn () => $this->getDefaultRegion()),
+                ->nonInteractively(fn() => $this->getDefaultRegion()),
         );
 
         return spin(
-            fn () => $this->client->createApplication(
+            fn() => $this->client->createApplication(
                 $this->getParam('repository'),
                 $this->getParam('name'),
                 $this->getParam('region'),
@@ -100,7 +102,7 @@ class ApplicationCreate extends BaseCommand
         }
 
         $applications = spin(
-            fn () => $this->client->listApplications(),
+            fn() => $this->client->listApplications(),
             'Fetching applications...'
         );
 

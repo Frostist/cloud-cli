@@ -8,6 +8,7 @@ use Illuminate\Http\Client\RequestException;
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\error;
 use function Laravel\Prompts\info;
+use function Laravel\Prompts\intro;
 use function Laravel\Prompts\spin;
 
 class BackgroundProcessDelete extends BaseCommand
@@ -22,7 +23,7 @@ class BackgroundProcessDelete extends BaseCommand
     {
         $this->ensureClient();
 
-        $this->intro('Deleting background process');
+        intro('Deleting background process');
 
         $processId = $this->argument('process');
 

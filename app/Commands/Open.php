@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Process;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\error;
+use function Laravel\Prompts\intro;
+use function Laravel\Prompts\outro;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\warning;
 
@@ -30,7 +32,7 @@ class Open extends BaseCommand
 
     public function handle()
     {
-        $this->intro('Opening site in browser');
+        intro('Opening site in browser');
 
         $this->ensureClient();
         $this->ensureRemoteGitRepo();
@@ -74,9 +76,9 @@ class Open extends BaseCommand
         if ($environment->url) {
             Process::run('open '.$environment->url);
 
-            $this->outro($environment->url);
+            outro($environment->url);
         } else {
-            $this->outro('No site found for this environment.');
+            outro('No site found for this environment.');
         }
     }
 }

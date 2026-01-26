@@ -9,6 +9,7 @@ use App\Dto\Deployment;
 use App\Dto\Environment;
 use App\Git;
 
+use function Laravel\Prompts\intro;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\warning;
@@ -31,7 +32,7 @@ class DeploymentGet extends BaseCommand
     {
         $this->ensureClient();
 
-        $this->intro('Deployment Details');
+        intro('Deployment Details');
 
         $application = $this->getCloudApplication();
         $environment = $this->getEnvironment(collect($application->environments));

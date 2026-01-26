@@ -6,6 +6,7 @@ use App\Concerns\HasAClient;
 use App\Concerns\RequiresApplication;
 
 use function Laravel\Prompts\info;
+use function Laravel\Prompts\intro;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\table;
 
@@ -24,7 +25,7 @@ class EnvironmentList extends BaseCommand
     {
         $this->ensureClient();
 
-        $this->intro('Listing environments');
+        intro('Listing environments');
 
         $applicationId = $this->argument('application');
 

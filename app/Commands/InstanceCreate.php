@@ -6,6 +6,8 @@ use App\Concerns\HasAClient;
 use Illuminate\Http\Client\RequestException;
 
 use function Laravel\Prompts\error;
+use function Laravel\Prompts\intro;
+use function Laravel\Prompts\outro;
 use function Laravel\Prompts\spin;
 
 class InstanceCreate extends BaseCommand
@@ -27,7 +29,7 @@ class InstanceCreate extends BaseCommand
     {
         $this->ensureClient();
 
-        $this->intro('Creating instance');
+        intro('Creating instance');
 
         $data = [];
 
@@ -68,7 +70,7 @@ class InstanceCreate extends BaseCommand
                 return;
             }
 
-            $this->outro("Instance created: {$instance->name}");
+            outro("Instance created: {$instance->name}");
         } catch (RequestException $e) {
             if ($e->response?->status() === 422) {
                 $errors = $e->response->json()['errors'] ?? [];

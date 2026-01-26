@@ -26,6 +26,7 @@ use Throwable;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\info;
+use function Laravel\Prompts\intro;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
@@ -54,7 +55,7 @@ class Ship extends BaseCommand
         $this->git = $git;
 
         slideIn('WE MUST *SHIP*');
-        $this->intro('Shipping application to Laravel Cloud');
+        intro('Shipping application to Laravel Cloud');
 
         $this->ensureClient();
         $this->ensureRemoteGitRepo();

@@ -5,6 +5,7 @@ namespace App\Commands;
 use App\Concerns\HasAClient;
 
 use function Laravel\Prompts\info;
+use function Laravel\Prompts\intro;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\table;
 
@@ -20,12 +21,10 @@ class ApplicationList extends BaseCommand
     {
         $this->ensureClient();
 
-        if (! $this->option('json')) {
-            $this->intro('Applications');
-        }
+        intro('Applications');
 
         $applications = spin(
-            fn () => $this->client->listApplications(),
+            fn() => $this->client->listApplications(),
             'Fetching applications...'
         );
 
@@ -39,7 +38,7 @@ class ApplicationList extends BaseCommand
 
         table(
             ['ID', 'Name', 'Region', 'Repository'],
-            collect($applications->data)->map(fn ($app) => [
+            collect($applications->data)->map(fn($app) => [
                 $app->id,
                 $app->name,
                 $app->region,

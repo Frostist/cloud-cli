@@ -5,6 +5,7 @@ namespace App\Commands;
 use App\Concerns\HasAClient;
 
 use function Laravel\Prompts\info;
+use function Laravel\Prompts\intro;
 use function Laravel\Prompts\spin;
 
 class DomainGet extends BaseCommand
@@ -19,7 +20,7 @@ class DomainGet extends BaseCommand
     {
         $this->ensureClient();
 
-        $this->intro('Domain Details');
+        intro('Domain Details');
 
         $domain = spin(
             fn () => $this->client->getDomain($this->argument('domain')),

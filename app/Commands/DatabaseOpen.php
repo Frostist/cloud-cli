@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Process;
 use RuntimeException;
 
 use function Laravel\Prompts\error;
+use function Laravel\Prompts\intro;
+use function Laravel\Prompts\outro;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
 
@@ -31,7 +33,7 @@ class DatabaseOpen extends BaseCommand
     {
         $this->ensureClient();
 
-        $this->intro('Opening database in TablePlus');
+        intro('Opening database in TablePlus');
 
         $app = $this->getCloudApplication();
         $environments = spin(
@@ -65,7 +67,7 @@ class DatabaseOpen extends BaseCommand
 
         Process::run(['open', $url]);
 
-        $this->outro("Opened {$database->name} in TablePlus");
+        outro("Opened {$database->name} in TablePlus");
     }
 
     protected function resolveDatabase(Collection $databases, $environment): DatabaseCluster

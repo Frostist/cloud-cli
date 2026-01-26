@@ -8,6 +8,8 @@ use App\Contracts\NoAuthRequired;
 use Illuminate\Support\Collection;
 
 use function Laravel\Prompts\info;
+use function Laravel\Prompts\intro;
+use function Laravel\Prompts\outro;
 use function Laravel\Prompts\password;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
@@ -29,7 +31,7 @@ class Auth extends BaseCommand implements NoAuthRequired
         $this->config = app(ConfigRepository::class);
         $tokens = $this->config->apiTokens();
 
-        $this->intro('Laravel Cloud API Tokens');
+        intro('Laravel Cloud API Tokens');
 
         if ($this->option('add')) {
             $this->addToken($tokens);
@@ -79,7 +81,7 @@ class Auth extends BaseCommand implements NoAuthRequired
 
         $this->config->addApiToken($newToken);
 
-        $this->outro('API token saved to '.$this->config->path());
+        outro('API token saved to '.$this->config->path());
     }
 
     protected function removeToken(Collection $existingTokens): void
@@ -91,7 +93,7 @@ class Auth extends BaseCommand implements NoAuthRequired
 
         $this->config->removeApiToken($token);
 
-        $this->outro('API token removed');
+        outro('API token removed');
     }
 
     protected function listTokens(Collection $existingTokens): void

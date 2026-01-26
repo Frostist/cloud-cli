@@ -6,6 +6,8 @@ use App\Concerns\HasAClient;
 use Illuminate\Http\Client\RequestException;
 
 use function Laravel\Prompts\error;
+use function Laravel\Prompts\intro;
+use function Laravel\Prompts\outro;
 use function Laravel\Prompts\spin;
 
 class EnvironmentUpdate extends BaseCommand
@@ -25,7 +27,7 @@ class EnvironmentUpdate extends BaseCommand
     {
         $this->ensureClient();
 
-        $this->intro('Updating environment');
+        intro('Updating environment');
 
         $data = [];
 
@@ -63,7 +65,7 @@ class EnvironmentUpdate extends BaseCommand
                 return;
             }
 
-            $this->outro("Environment updated: {$environment->name}");
+            outro("Environment updated: {$environment->name}");
         } catch (RequestException $e) {
             if ($e->response?->status() === 422) {
                 $errors = $e->response->json()['errors'] ?? [];

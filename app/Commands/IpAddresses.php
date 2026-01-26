@@ -6,6 +6,7 @@ use App\Concerns\HasAClient;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Process;
 
+use function Laravel\Prompts\intro;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\table;
@@ -24,7 +25,7 @@ class IpAddresses extends BaseCommand
 
     public function handle()
     {
-        $this->intro('Laravel Cloud IP Addresses');
+        intro('Laravel Cloud IP Addresses');
 
         $this->ensureClient();
 
