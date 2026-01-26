@@ -2,6 +2,7 @@
 
 namespace App\Concerns;
 
+use App\Commands\BaseCommand;
 use App\Dto\ValidationErrors;
 use Illuminate\Http\Client\RequestException;
 use RuntimeException;
@@ -13,6 +14,8 @@ use function Laravel\Prompts\error;
  */
 trait Validates
 {
+    protected ?ValidationErrors $errors = null;
+
     /**
      * @param  callable(ValidationErrors): TReturn  $callback
      * @return TReturn
@@ -20,7 +23,7 @@ trait Validates
     protected function loopUntilValid(callable $callback, int $maxAttempts = 10, bool|callable $suppressOutput = false): mixed
     {
         $result = null;
-        $errors = new ValidationErrors;
+        $this->errors ??= new ValidationErrors;
         $attempts = 0;
 
         while (! $result) {
@@ -28,14 +31,16 @@ trait Validates
                 throw new RuntimeException('Maximum attempts reached');
             }
 
+            $this->breakValidationLoopIfNotInteractive();
+
             $attempts++;
 
             try {
-                $result = $callback($errors);
+                $result = $callback($this->errors);
 
                 return $result;
             } catch (RequestException $e) {
-                $errors->clear();
+                $this->errors->clear();
 
                 if ($e->response?->status() === 422) {
                     $responseErrors = $e->response->json()['errors'] ?? [];
@@ -44,7 +49,7 @@ trait Validates
                         foreach ($responseErrors as $field => $messages) {
                             $this->displayValidationError(ucwords($field).': '.implode(', ', $messages), $suppressOutput);
 
-                            $errors->add($field, implode(', ', $messages));
+                            $this->errors->add($field, implode(', ', $messages));
                         }
                     } else {
                         $message = $e->response->json()['message'] ?? 'Unknown validation error';
@@ -56,6 +61,8 @@ trait Validates
                 }
             }
         }
+
+        $this->errors->clear();
 
         return $result;
     }
@@ -75,5 +82,18 @@ trait Validates
         }
 
         error($message);
+    }
+
+    protected function breakValidationLoopIfNotInteractive(): void
+    {
+        if ($this->errors->hasAny() && ! $this->isInteractive()) {
+            if (! $this->wantsJson()) {
+                throw new RuntimeException($this->errors);
+            }
+
+            $this->line($this->errors->toJson());
+
+            exit(BaseCommand::FAILURE);
+        }
     }
 }
