@@ -7,6 +7,7 @@ class Organization extends Data
     public function __construct(
         public readonly string $id,
         public readonly string $name,
+        public readonly string $slug,
     ) {
         //
     }
@@ -19,6 +20,7 @@ class Organization extends Data
         return new self(
             id: $data['id'],
             name: $attributes['name'],
+            slug: $attributes['slug'],
         );
     }
 
@@ -27,6 +29,7 @@ class Organization extends Data
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'slug' => $this->slug,
         ];
     }
 }
