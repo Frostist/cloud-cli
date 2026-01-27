@@ -8,6 +8,15 @@ use Saloon\PaginationPlugin\Paginator as BasePaginator;
 
 class JsonApiPaginator extends BasePaginator
 {
+    protected ?\Closure $itemTransformer = null;
+
+    public function transform(\Closure $transformer): self
+    {
+        $this->itemTransformer = $transformer;
+
+        return $this;
+    }
+
     protected function isLastPage(Response $response): bool
     {
         $links = $response->json('links', []);
@@ -17,7 +26,17 @@ class JsonApiPaginator extends BasePaginator
 
     protected function getPageItems(Response $response, Request $request): array
     {
-        return $response->json('data', []);
+        $items = $response->json('data', []);
+
+        if ($this->itemTransformer) {
+            $responseData = $response->json();
+
+            return array_map(function ($item) use ($responseData) {
+                return ($this->itemTransformer)($responseData, $item);
+            }, $items);
+        }
+
+        return $items;
     }
 
     protected function applyPagination(Request $request): Request

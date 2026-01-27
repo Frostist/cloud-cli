@@ -28,10 +28,8 @@ class ObjectStorageBucketsResource
             visibility: $visibility,
         );
 
-        return $this->connector->paginate($request)->transform(function ($response) {
-            $responseData = $response->json();
-
-            return collect($responseData['data'] ?? [])->map(fn ($item) => ObjectStorageBucket::fromJsonApi(['data' => $item, 'included' => $responseData['included'] ?? []]))->toArray();
+        return $this->connector->paginate($request)->transform(function ($responseData, $item) {
+            return ObjectStorageBucket::fromJsonApi(['data' => $item, 'included' => $responseData['included'] ?? []]);
         });
     }
 

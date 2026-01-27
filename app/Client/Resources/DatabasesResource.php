@@ -22,10 +22,8 @@ class DatabasesResource
     {
         $request = new ListDatabasesRequest($clusterId);
 
-        return $this->connector->paginate($request)->transform(function ($response) {
-            $responseData = $response->json();
-
-            return collect($responseData['data'] ?? [])->map(fn ($item) => Database::fromJsonApi(['data' => $item, 'included' => $responseData['included'] ?? []]))->toArray();
+        return $this->connector->paginate($request)->transform(function ($responseData, $item) {
+            return Database::fromJsonApi(['data' => $item, 'included' => $responseData['included'] ?? []]);
         });
     }
 

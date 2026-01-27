@@ -21,10 +21,8 @@ class CommandsResource
     {
         $request = new ListCommandsRequest($environmentId);
 
-        return $this->connector->paginate($request)->transform(function ($response) {
-            $responseData = $response->json();
-
-            return collect($responseData['data'] ?? [])->map(fn ($item) => Command::fromJsonApi(['data' => $item, 'included' => $responseData['included'] ?? []]))->toArray();
+        return $this->connector->paginate($request)->transform(function ($responseData, $item) {
+            return Command::fromJsonApi(['data' => $item, 'included' => $responseData['included'] ?? []]);
         });
     }
 

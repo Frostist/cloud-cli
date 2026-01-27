@@ -27,10 +27,8 @@ class ApplicationsResource
             slug: $slug,
         );
 
-        return $this->connector->paginate($request)->transform(function ($response) {
-            $responseData = $response->json();
-
-            return collect($responseData['data'] ?? [])->map(fn ($item) => Application::fromJsonApi(['data' => $item, 'included' => $responseData['included'] ?? []]))->toArray();
+        return $this->connector->paginate($request)->transform(function ($responseData, $item) {
+            return Application::fromJsonApi(['data' => $item, 'included' => $responseData['included'] ?? []]);
         });
     }
 

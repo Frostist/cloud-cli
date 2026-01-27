@@ -24,10 +24,8 @@ class DomainsResource
     {
         $request = new ListDomainsRequest($environmentId);
 
-        return $this->connector->paginate($request)->transform(function ($response) {
-            $responseData = $response->json();
-
-            return collect($responseData['data'] ?? [])->map(fn ($item) => Domain::fromJsonApi(['data' => $item, 'included' => $responseData['included'] ?? []]))->toArray();
+        return $this->connector->paginate($request)->transform(function ($responseData, $item) {
+            return Domain::fromJsonApi(['data' => $item, 'included' => $responseData['included'] ?? []]);
         });
     }
 
