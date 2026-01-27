@@ -6,7 +6,7 @@ use App\Concerns\DeterminesDefaultRegion;
 use App\Concerns\HasAClient;
 use App\Concerns\RequiresRemoteGitRepo;
 use App\Concerns\Validates;
-use App\Enums\CloudRegion;
+use App\Dto\Region;
 use App\Git;
 
 use function Laravel\Prompts\intro;
@@ -69,16 +69,19 @@ class ApplicationCreate extends BaseCommand
                 ->nonInteractively(fn () => $git->hasGitHubRemote() ? $git->remoteRepo() : null),
         );
 
+        $regions = spin(
+            fn () => $this->client->getRegions(),
+            'Fetching regions...',
+        );
+
         $this->addParam(
             'region',
             fn ($resolver) => $resolver
                 ->fromInput(fn (?string $value) => select(
                     label: 'Region',
-                    options: collect(CloudRegion::cases())->mapWithKeys(
-                        fn (CloudRegion $region) => [
-                            $region->value => $region->label(),
-                        ],
-                    ),
+                    options: collect($regions)->mapWithKeys(fn (Region $region) => [
+                        $region->value => $region->label,
+                    ]),
                     default: $value ?? $this->getDefaultRegion(),
                     required: true,
                 ))

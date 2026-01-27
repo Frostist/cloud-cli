@@ -2,7 +2,6 @@
 
 namespace App\Dto;
 
-use App\Enums\CloudRegion;
 use App\Enums\WebsocketServerConnectionDistributionStrategy;
 use App\Enums\WebsocketServerMaxConnection;
 use App\Enums\WebsocketServerStatus;
@@ -15,7 +14,7 @@ class WebsocketCluster extends Data
         public readonly string $id,
         public readonly string $name,
         public readonly WebsocketServerType $type,
-        public readonly CloudRegion $region,
+        public readonly string $region,
         public readonly WebsocketServerStatus $status,
         public readonly WebsocketServerMaxConnection $maxConnections,
         public readonly WebsocketServerConnectionDistributionStrategy $connectionDistributionStrategy,
@@ -38,7 +37,7 @@ class WebsocketCluster extends Data
             id: $data['id'],
             name: $attributes['name'],
             type: WebsocketServerType::from($attributes['type']),
-            region: CloudRegion::from($attributes['region']),
+            region: $attributes['region'],
             status: WebsocketServerStatus::from($attributes['status']),
             maxConnections: WebsocketServerMaxConnection::from($attributes['max_connections']),
             connectionDistributionStrategy: WebsocketServerConnectionDistributionStrategy::from($attributes['connection_distribution_strategy']),
@@ -54,7 +53,7 @@ class WebsocketCluster extends Data
             'id' => $this->id,
             'name' => $this->name,
             'type' => $this->type->value,
-            'region' => $this->region->value,
+            'region' => $this->region,
             'status' => $this->status->value,
             'max_connections' => $this->maxConnections->value,
             'connection_distribution_strategy' => $this->connectionDistributionStrategy->value,

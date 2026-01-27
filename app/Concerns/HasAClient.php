@@ -43,19 +43,12 @@ trait HasAClient
         }
 
         if ($apiTokens->containsManyItems()) {
-            // TODO: Refactor once we have proper endpoints for orgs
             $orgs = spin(
                 function () use ($apiTokens) {
                     return $apiTokens->mapWithKeys(function ($token) {
                         $client = new CloudClient($token);
 
-                        $application = $client->listApplications()->data[0] ?? null;
-
-                        if (! $application || ! $application->organization) {
-                            return [$token => 'Unknown ('.str($token)->limit(8).')'];
-                        }
-
-                        return [$token => $application->organization];
+                        return [$token => $client->getMyOrganization()];
                     });
                 },
                 'Fetching token details',
@@ -63,10 +56,6 @@ trait HasAClient
 
             if (! $ignoreLocalConfig && $defaultOrganizationId = app(LocalConfig::class)->get('organization_id')) {
                 foreach ($orgs as $token => $organization) {
-                    if (is_string($organization)) {
-                        continue;
-                    }
-
                     if ($organization->id === $defaultOrganizationId) {
                         return $token;
                     }
@@ -76,7 +65,7 @@ trait HasAClient
             $apiToken = select(
                 label: 'Organization',
                 options: $orgs->mapWithKeys(fn ($organization, $token) => [
-                    $token => is_string($organization) ? $organization : $organization->name,
+                    $token => $organization->name,
                 ]),
             );
 

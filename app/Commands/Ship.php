@@ -12,8 +12,8 @@ use App\Dto\Database;
 use App\Dto\DatabaseCluster;
 use App\Dto\DatabaseType;
 use App\Dto\Environment;
+use App\Dto\Region;
 use App\Dto\ValidationErrors;
-use App\Enums\CloudRegion;
 use App\Git;
 use Carbon\CarbonInterval;
 use Dotenv\Dotenv;
@@ -92,7 +92,7 @@ class Ship extends BaseCommand
         }
 
         $mostUsedRegion = collect($applications->data)->pluck('region')->countBy()->sortDesc()->keys()->first();
-        $defaultRegion = CloudRegion::tryFrom($mostUsedRegion ?? '')?->value ?? CloudRegion::US_EAST_2->value;
+        $defaultRegion = $mostUsedRegion ?? 'us-east-2';
 
         $application = $this->loopUntilValid(
             fn ($errors) => $this->createApplication($errors, $defaultRegion, $repository),
@@ -175,11 +175,16 @@ class Ship extends BaseCommand
         }
 
         if (! $this->region || $errors->has('region')) {
+            $regions = spin(
+                fn () => $this->client->getRegions(),
+                'Fetching regions...',
+            );
+
             $this->region = select(
                 label: 'Application region',
-                options: collect(CloudRegion::cases())->mapWithKeys(
-                    fn (CloudRegion $region) => [
-                        $region->value => $region->label(),
+                options: collect($regions)->mapWithKeys(
+                    fn (Region $region) => [
+                        $region->value => $region->label,
                     ],
                 ),
                 default: $this->region ?? $defaultRegion,
@@ -381,7 +386,10 @@ class Ship extends BaseCommand
 
         $type = collect($types)->firstWhere('type', $selectedType);
 
-        $regions = collect($type->regions)->mapWithKeys(fn (string $region) => [$region => CloudRegion::from($region)->label()]);
+        $regions = spin(
+            fn () => $this->client->getRegions(),
+            'Fetching regions...',
+        );
 
         $region = select(
             label: 'Database cluster region',

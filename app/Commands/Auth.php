@@ -98,24 +98,16 @@ class Auth extends BaseCommand implements NoAuthRequired
 
     protected function listTokens(Collection $existingTokens): void
     {
-        // TODO: Refactor once we have proper endpoints for orgs
         $orgs = spin(
             function () use ($existingTokens) {
                 return $existingTokens->map(function ($token) {
                     $client = new CloudClient($token);
 
-                    $application = $client->listApplications()->data[0] ?? null;
-
-                    if (! $application || ! $application->organization) {
-                        return [
-                            'token' => $token,
-                            'organization' => 'Unknown',
-                        ];
-                    }
+                    $organization = $client->getMyOrganization();
 
                     return [
                         'token' => $token,
-                        'organization' => $application->organization->name,
+                        'organization' => $organization->name,
                     ];
                 });
             },

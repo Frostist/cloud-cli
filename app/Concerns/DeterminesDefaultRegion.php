@@ -2,8 +2,6 @@
 
 namespace App\Concerns;
 
-use App\Enums\CloudRegion;
-
 use function Laravel\Prompts\spin;
 
 trait DeterminesDefaultRegion
@@ -28,7 +26,7 @@ trait DeterminesDefaultRegion
             ->keys()
             ->first();
 
-        $this->defaultRegion = CloudRegion::tryFrom($mostUsedRegion ?? '')?->value ?? CloudRegion::US_EAST_2->value;
+        $this->defaultRegion = $mostUsedRegion ?? 'us-east-2';
 
         return $this->defaultRegion;
     }

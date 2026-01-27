@@ -66,11 +66,10 @@ class RepoConfig extends BaseCommand
         return 0;
     }
 
-    protected function resolveOrganization(): ?Organization
+    protected function resolveOrganization(): Organization
     {
-        // TODO: Refactor once we have proper endpoints for orgs
         return spin(
-            fn () => $this->client->listApplications()->data[0]?->organization ?? null,
+            fn () => $this->client->getMyOrganization(),
             'Fetching organization...',
         );
     }
