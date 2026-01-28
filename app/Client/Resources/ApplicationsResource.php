@@ -65,11 +65,13 @@ class ApplicationsResource
 
         if (isset($data['avatar']) && is_array($data['avatar']) && count($data['avatar']) === 2) {
             [$avatarContent, $extension] = $data['avatar'];
+
             $avatar = new MultipartValue(
                 name: 'avatar',
                 value: $avatarContent,
                 filename: 'avatar.'.$extension,
             );
+
             unset($data['avatar']);
         }
 

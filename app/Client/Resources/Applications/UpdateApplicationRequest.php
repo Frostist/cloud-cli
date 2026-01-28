@@ -47,6 +47,15 @@ class UpdateApplicationRequest extends Request implements HasBody
             $body['avatar'] = $this->avatar;
         }
 
+        foreach ($body as $key => $value) {
+            if (! $value instanceof MultipartValue) {
+                $body[$key] = new MultipartValue(
+                    name: $key,
+                    value: $value,
+                );
+            }
+        }
+
         return $body;
     }
 

@@ -10,6 +10,7 @@ use App\Dto\Application;
 use App\Git;
 
 use function Laravel\Prompts\intro;
+use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\outro;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
@@ -40,146 +41,131 @@ class ApplicationUpdate extends BaseCommand
         intro('Updating Application');
 
         $application = $this->getCloudApplication(showPrompt: false);
+
+        $dataOptions = [
+            'name' => [
+                'label' => 'Name',
+                'current' => $application->name,
+            ],
+            'slack-channel' => [
+                'label' => 'Slack channel',
+                'current' => $application->slackChannel ?? 'N/A',
+                'key' => 'slack_channel',
+            ],
+            'repository' => [
+                'label' => 'Repository',
+                'current' => $application->repositoryFullName ?? 'N/A',
+            ],
+            'avatar' => [
+                'label' => 'Avatar',
+                'current' => 'N/A',
+            ],
+            'default-environment' => [
+                'label' => 'Default environment',
+                'current' => $application->defaultEnvironmentId ?? 'N/A',
+                'key' => 'default_environment_id',
+            ],
+        ];
+
+        $dataOptions = collect($dataOptions)->mapWithKeys(fn ($option, $key) => [
+            $key => [
+                ...$option,
+                'key' => $option['key'] ?? $key,
+            ],
+        ])->toArray();
+
         $data = [];
 
-        if ($this->option('name')) {
-            $data['name'] = $this->option('name');
+        foreach ($dataOptions as $key => $option) {
+            if ($this->option($key)) {
+                $data[$option['key']] = $this->option($key);
 
-            $this->reportChange(
-                'Name',
-                $application->name,
-                $this->option('name'),
+                $this->reportChange(
+                    $option['label'],
+                    $option['current'],
+                    $this->option($key),
+                );
+            }
+        }
+
+        if (! empty($data) || ! $this->isInteractive()) {
+            if (empty($data)) {
+                $this->outputErrorOrThrow('No fields to update. Provide at least one option.');
+
+                return self::FAILURE;
+            }
+
+            $updatedApplication = spin(
+                fn () => $this->client->applications()->update($application->id, $data),
+                'Updating application...',
             );
+
+            $this->outputJsonIfWanted($updatedApplication);
+
+            outro('Application updated');
+
+            return self::SUCCESS;
         }
 
-        if ($this->option('slack-channel')) {
-            $data['slack_channel'] = $this->option('slack-channel');
-
-            $this->reportChange(
-                'Slack channel',
-                $application->slackChannel ?? 'N/A',
-                $this->option('slack-channel'),
-            );
-        }
-
-        if ($this->option('repository')) {
-            $data['repository'] = $this->option('repository');
-
-            $this->reportChange(
-                'Repository',
-                $application->repositoryFullName ?? 'N/A',
-                $this->option('repository'),
-            );
-        }
-
-        if ($this->option('avatar')) {
-            $data['avatar'] = $this->option('avatar');
-
-            $this->reportChange(
-                'Avatar',
-                'N/A',
-                $this->option('avatar'),
-            );
-        }
-
-        if ($this->option('default-environment')) {
-            $data['default_environment_id'] = $this->option('default-environment');
-
-            $this->reportChange(
-                'Default environment',
-                $application->defaultEnvironmentId ?? 'N/A',
-                $this->option('default-environment-id'),
-            );
-        }
-
-        if ($this->isInteractive()) {
-            $data = $this->collectDataFromPrompts($data, $application);
-        }
-
-        if (empty($data)) {
-            $this->outputErrorOrThrow('No fields to update. Provide at least one option.');
-
-            return self::FAILURE;
-        }
-
-        $this->loopUntilValid(
-            function ($errors) use ($application, $data) {
-                if ($this->isInteractive()) {
-                    if ($errors->has('name')) {
-                        $data['name'] = $this->getNewName($data['name'] ?? $application->name);
-                    }
-
-                    if ($errors->has('slug')) {
-                        $data['slug'] = $this->getNewSlug($data['slug'] ?? $application->slug);
-                    }
-
-                    if ($errors->has('repository')) {
-                        $data['repository'] = $this->getNewRepository($data['repository'] ?? $application->repositoryFullName);
-                    }
-
-                    if ($errors->has('avatar')) {
-                        $data['avatar'] = $this->getNewAvatar();
-                    }
-
-                    if ($errors->has('default_environment_id')) {
-                        $data['default_environment_id'] = $this->getNewDefaultEnvironmentId($application);
-                    }
-
-                    if ($errors->has('slack_channel')) {
-                        $data['slack_channel'] = $this->getNewSlackChannel($data['slack_channel'] ?? $application->slackChannel);
-                    }
-                } elseif ($errors->hasAny()) {
-                    exit(self::FAILURE);
-                }
-
-                return spin(fn () => $this->client->applications()->update($application->id, $data), 'Updating application...');
-            },
+        $application = $this->loopUntilValid(
+            fn () => $this->collectDataAndUpdate($dataOptions, $application),
         );
-
-        $application = $this->getCloudApplication(showPrompt: false);
-
-        $this->outputJsonIfWanted($application);
 
         outro('Application updated');
     }
 
-    protected function collectDataFromPrompts(array $data, Application $application): array
+    protected function collectDataAndUpdate(array $dataOptions, Application $application): Application
     {
-        do {
-            $selection = select(
-                label: 'What do you want to update?',
-                options: [
-                    'name' => 'Name',
-                    'slug' => 'Slug',
-                    'repository' => 'Repository',
-                    'avatar' => 'Avatar',
-                    'default_environment_id' => 'Default environment',
-                    'slack_channel' => 'Slack channel',
-                    'done' => 'Done, update application',
-                ],
-            );
+        $selection = multiselect(
+            label: 'What do you want to update?',
+            options: collect($dataOptions)->mapWithKeys(fn ($option, $key) => [
+                $key => $option['label'],
+            ])->toArray(),
+        );
 
-            if ($selection === 'done') {
-                break;
-            }
+        if (empty($selection)) {
+            $this->outputErrorOrThrow('No fields to update. Select at least one option.');
 
-            $data[$selection] = match ($selection) {
-                'name' => $this->getNewName($data['name'] ?? $application->name),
-                'slug' => $this->getNewSlug($data['slug'] ?? $application->slug),
-                'repository' => $this->getNewRepository($data['repository'] ?? $application->repositoryFullName),
-                'avatar' => $this->getNewAvatar(),
-                'default_environment_id' => $this->getNewDefaultEnvironmentId($data['default_environment_id'] ?? $application->defaultEnvironmentId),
-                'slack_channel' => $this->getNewSlackChannel($data['slack_channel'] ?? $application->slackChannel ?? ''),
+            exit(self::FAILURE);
+        }
+
+        foreach ($selection as $key) {
+            $apiParamKey = $dataOptions[$key]['key'];
+
+            $resolver = match ($key) {
+                'name' => fn ($resolver) => $resolver->fromInput(
+                    fn ($value) => $this->getNewName($value ?? $application->name),
+                ),
+                'slug' => fn ($resolver) => $resolver->fromInput(
+                    fn ($value) => $this->getNewSlug($value ?? $application->slug),
+                ),
+                'repository' => fn ($resolver) => $resolver->fromInput(
+                    fn ($value) => $this->getNewRepository($value ?? $application->repositoryFullName),
+                ),
+                'avatar' => fn ($resolver) => $resolver->fromInput(
+                    fn ($value) => $this->getNewAvatar($value ?? $application->avatar),
+                ),
+                'default-environment' => fn ($resolver) => $resolver->fromInput(
+                    fn ($value) => $this->getNewDefaultEnvironmentId($value ?? $application->defaultEnvironmentId),
+                ),
+                'slack-channel' => fn ($resolver) => $resolver->fromInput(
+                    fn ($value) => $this->getNewSlackChannel($value ?? $application->slackChannel),
+                ),
             };
-        } while ($selection !== 'done');
 
-        return $data;
+            $this->addParam($apiParamKey, $resolver);
+        }
+
+        return spin(
+            fn () => $this->client->applications()->update($application->id, $this->getParams()),
+            'Updating application...',
+        );
     }
 
     protected function reportChange(string $field, string $oldValue, string $newValue): void
     {
         dataList([
-            $field => $this->yellow($oldValue).' '.$this->dim('→').' '.$this->green($newValue),
+            $field => $this->dim($this->yellow($oldValue).' →').' '.$this->green($newValue),
         ]);
     }
 
