@@ -44,7 +44,7 @@ class BackgroundProcessList extends BaseCommand
             ['ID', 'Command', 'Type', 'Instances'],
             $items->map(fn ($process) => [
                 $process->id,
-                substr($process->command, 0, 50),
+                str($process->command)->limit(25)->toString(),
                 $process->type,
                 $process->instances,
             ])->toArray(),
