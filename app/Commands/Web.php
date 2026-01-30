@@ -5,16 +5,10 @@ namespace App\Commands;
 use App\Concerns\HasAClient;
 use App\Concerns\RequiresApplication;
 use App\Concerns\RequiresRemoteGitRepo;
-use App\Git;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Process;
 
-use function Laravel\Prompts\confirm;
-use function Laravel\Prompts\error;
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\outro;
-use function Laravel\Prompts\spin;
-use function Laravel\Prompts\warning;
 
 class Web extends BaseCommand
 {
@@ -34,34 +28,15 @@ class Web extends BaseCommand
         $this->ensureClient();
         $this->ensureRemoteGitRepo();
 
-        $repository = app(Git::class)->remoteRepo();
+        $app = $this->resolvers()->application()->resolve($this->argument('application'));
 
-        $applications = spin(
-            fn () => $this->client->applications()->withDefaultIncludes()->list(),
-            'Checking for existing application...',
-        );
-
-        $existingApps = $applications->collect()->filter(
-            fn ($app) => $app->repositoryFullName === $repository,
-        );
-
-        if ($existingApps->isEmpty()) {
-            warning('No existing Cloud application found for this repository.');
-
-            $shouldShip = confirm('Do you want to ship this application to Laravel Cloud?');
-
-            if ($shouldShip) {
-                Artisan::call('ship', [], $this->output);
-
-                return;
+        if (! $app) {
+            if ($this->argument('application')) {
+                $this->failAndExit('Unable to resolve application: '.$this->argument('application'));
             }
 
-            error('Cancelled.');
-
-            exit(1);
+            $this->failAndExit('Unable to resolve application from current directory, provide an application ID or name as an argument.');
         }
-
-        $app = $this->getCloudApplication($existingApps);
 
         $url = $app->url();
 

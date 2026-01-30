@@ -2,7 +2,9 @@
 
 namespace App\Commands;
 
+use App\Concerns\HasAClient;
 use App\Concerns\Validates;
+use App\Resolvers\Resolvers;
 use App\Support\ValueResolver;
 use Laravel\Prompts\Concerns\Colors;
 use LaravelZero\Framework\Commands\Command;
@@ -13,12 +15,15 @@ use function Laravel\Prompts\error;
 abstract class BaseCommand extends Command
 {
     use Colors;
+    use HasAClient;
     use Validates;
 
     /**
      * @var array<string, ValueResolver>
      */
     protected array $paramCollectors = [];
+
+    protected ?Resolvers $resolvers;
 
     /**
      * @param  callable(ValueResolver): ValueResolver  $resolver
@@ -29,6 +34,18 @@ abstract class BaseCommand extends Command
 
         $this->paramCollectors[$name] = $resolver($existing)->errors($this->errors);
         $this->paramCollectors[$name]->retrieve();
+    }
+
+    protected function resolvers(): Resolvers
+    {
+        return $this->resolvers ??= app(Resolvers::class, ['client' => $this->client]);
+    }
+
+    protected function failAndExit(string $message): void
+    {
+        error($message);
+
+        exit(self::FAILURE);
     }
 
     protected function getParam(string $name, mixed $default = null): ?string
