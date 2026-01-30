@@ -66,9 +66,9 @@ class ApplicationResolver extends Resolver
 
         $this->ensureInteractive('Please provide an application ID or name.');
 
-        $selectedApp = select(
+        $selectedApp = selectWithContext(
             label: 'Application',
-            options: $apps->mapWithKeys(fn ($app) => [$app->id => $app->name]),
+            options: $apps->mapWithKeys(fn ($app) => [$app->id => $app->name])->toArray(),
         );
 
         // No need to display the resolved application name, it will be displayed from the select above

@@ -3,6 +3,7 @@
 use App\Prompts\Answered;
 use App\Prompts\DataList;
 use App\Prompts\DynamicSpinner;
+use App\Prompts\SelectWithContextPrompt;
 use App\Prompts\SlideIn;
 use Laravel\Prompts\Note;
 
@@ -17,6 +18,13 @@ if (! function_exists('success')) {
     function success(string $message): void
     {
         (new Note(message: $message, type: 'success'))->display();
+    }
+}
+
+if (! function_exists('selectWithContext')) {
+    function selectWithContext(string $label, array $options, int|string|null $default = null, int $scroll = 5, mixed $validate = null, string $hint = '', bool|string $required = true, ?Closure $transform = null): string
+    {
+        return (new SelectWithContextPrompt(label: $label, options: $options, default: $default, scroll: $scroll, validate: $validate, hint: $hint, required: $required, transform: $transform))->prompt();
     }
 }
 

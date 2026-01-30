@@ -63,7 +63,7 @@ class InstanceResolver extends Resolver
 
         $this->ensureInteractive('Please provide an instance ID or name.');
 
-        $selected = select(
+        $selected = selectWithContext(
             label: 'Instance',
             options: $instances->mapWithKeys(fn ($instance) => [
                 $instance->id => $instance->name,

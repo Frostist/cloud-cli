@@ -69,9 +69,9 @@ class EnvironmentResolver extends Resolver
 
         $this->ensureInteractive('Please provide an environment ID or name.');
 
-        $selectedEnv = select(
+        $selectedEnv = selectWithContext(
             label: 'Environment',
-            options: $envs->mapWithKeys(fn ($env) => [$env->id => $env->name]),
+            options: $envs->mapWithKeys(fn ($env) => [$env->id => $env->name])->toArray(),
         );
 
         // No need to display the resolved environment name, it will be displayed from the select above

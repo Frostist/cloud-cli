@@ -56,10 +56,10 @@ class BackgroundProcessResolver extends Resolver
 
         $this->ensureInteractive('Please provide a background process ID.');
 
-        $selected = select(
+        $selected = selectWithContext(
             label: 'Background Process',
             options: $backgroundProcesses->mapWithKeys(fn ($backgroundProcess) => [
-                $backgroundProcess->id => $backgroundProcess->command,
+                $backgroundProcess->id => str($backgroundProcess->command)->limit(50)->toString(),
             ])->toArray(),
         );
 
