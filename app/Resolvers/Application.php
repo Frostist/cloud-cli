@@ -14,7 +14,7 @@ use function Laravel\Prompts\spin;
 
 class Application extends Resolver
 {
-    public function resolve(?string $idOrName = null): ?ApplicationDto
+    public function from(?string $idOrName = null): ?ApplicationDto
     {
         $identifier = $idOrName ?? $this->localConfig->get('application_id');
 

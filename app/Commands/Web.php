@@ -28,7 +28,7 @@ class Web extends BaseCommand
         $this->ensureClient();
         $this->ensureRemoteGitRepo();
 
-        $app = $this->resolvers()->application()->resolve($this->argument('application'));
+        $app = $this->resolvers()->application()->from($this->argument('application'));
 
         if (! $app) {
             if ($this->argument('application')) {
