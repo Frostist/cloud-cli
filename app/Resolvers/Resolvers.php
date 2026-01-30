@@ -30,6 +30,11 @@ class Resolvers
         return $this->make(InstanceResolver::class);
     }
 
+    public function backgroundProcess(): BackgroundProcessResolver
+    {
+        return $this->make(BackgroundProcessResolver::class);
+    }
+
     protected function make(string $resolver): Resolver
     {
         return new $resolver($this->client, $this->localConfig, $this->isInteractive);

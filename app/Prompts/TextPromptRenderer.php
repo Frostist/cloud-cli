@@ -13,7 +13,7 @@ class TextPromptRenderer extends Renderer
     /**
      * Render the text prompt.
      */
-    public function __invoke(TextPrompt|Answered|NumberPrompt $prompt): string
+    public function __invoke(TextPrompt|Answered $prompt): string
     {
         $maxWidth = $prompt->terminal()->cols() - 6;
 
@@ -23,6 +23,7 @@ class TextPromptRenderer extends Renderer
                     $this->dim($this->truncate($prompt->label, $prompt->terminal()->cols() - 6)),
                     $this->truncate($prompt->value(), $maxWidth),
                     symbol: TimelineSymbol::SUCCESS,
+                    info: $prompt instanceof Answered && $prompt->hint ? $prompt->hint : '',
                 ),
 
             'cancel' => $this

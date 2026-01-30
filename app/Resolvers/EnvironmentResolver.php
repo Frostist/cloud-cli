@@ -36,7 +36,7 @@ class EnvironmentResolver extends Resolver
             $environment = $this->fetch($environment->id);
         }
 
-        $this->displayResolved('Environment', $environment->name);
+        $this->displayResolved('Environment', $environment->name, $environment->id);
 
         return $environment;
     }

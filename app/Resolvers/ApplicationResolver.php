@@ -30,7 +30,7 @@ class ApplicationResolver extends Resolver
             $this->failAndExit('Unable to resolve application: '.($idOrName ?? 'Provide a valid application ID or name as an argument.'));
         }
 
-        $this->displayResolved('Application', $app->name);
+        $this->displayResolved('Application', $app->name, $app->id);
 
         return $app;
     }

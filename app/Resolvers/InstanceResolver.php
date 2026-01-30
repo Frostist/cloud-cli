@@ -13,6 +13,11 @@ class InstanceResolver extends Resolver
 {
     use HasAnApplication;
 
+    public function resolve(): ?EnvironmentInstance
+    {
+        return $this->from();
+    }
+
     public function from(?string $idOrName = null): ?EnvironmentInstance
     {
         $instance = ($idOrName ? $this->fromIdentifier($idOrName) : null)
@@ -22,7 +27,7 @@ class InstanceResolver extends Resolver
             $this->failAndExit('Unable to resolve instance: '.($idOrName ?? 'Provide a valid instance ID or name as an argument.'));
         }
 
-        $this->displayResolved('Instance', $instance->name);
+        $this->displayResolved('Instance', $instance->name, $instance->id);
 
         return $instance;
     }
