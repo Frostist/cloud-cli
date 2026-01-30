@@ -2,8 +2,6 @@
 
 namespace App\Commands;
 
-use RuntimeException;
-
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\outro;
@@ -45,7 +43,7 @@ class BackgroundProcessCreate extends BaseCommand
 
     protected function createBackgroundProcess()
     {
-        $instanceId = $this->resolveInstanceId();
+        $instanceId = $this->resolvers()->instance()->from($this->argument('instance'))->id;
 
         $this->addParam(
             'type',
@@ -237,37 +235,6 @@ class BackgroundProcessCreate extends BaseCommand
         return spin(
             fn () => $this->client->backgroundProcesses()->create($instanceId, $data),
             'Creating background process...',
-        );
-    }
-
-    protected function resolveInstanceId()
-    {
-        if ($this->argument('instance')) {
-            return $this->argument('instance');
-        }
-
-        $application = $this->getCloudApplication();
-        $environment = $this->getEnvironment(collect($application->environments));
-        $environment = $this->client->environments()->get($environment->id);
-        $instances = collect($environment->instances);
-
-        if ($instances->isEmpty()) {
-            throw new RuntimeException('No instances found for environment '.$environment->name);
-        }
-
-        if ($instances->hasSole()) {
-            answered(label: 'Instance', answer: $instances->first());
-
-            return $instances->first();
-        }
-
-        if (! $this->isInteractive()) {
-            throw new RuntimeException('You must provide an instance ID when not in interactive mode.');
-        }
-
-        return select(
-            label: 'Instance',
-            options: $instances,
         );
     }
 
