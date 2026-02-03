@@ -40,6 +40,11 @@ class Resolvers
         return $this->make(CommandResolver::class);
     }
 
+    public function databaseCluster(): DatabaseClusterResolver
+    {
+        return $this->make(DatabaseClusterResolver::class);
+    }
+
     protected function make(string $resolver): Resolver
     {
         return new $resolver($this->client, $this->localConfig, $this->isInteractive);

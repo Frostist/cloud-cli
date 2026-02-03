@@ -2,14 +2,10 @@
 
 namespace App\Commands;
 
-use App\Concerns\RequiresDatabaseCluster;
-
 use function Laravel\Prompts\intro;
 
 class DatabaseGet extends BaseCommand
 {
-    use RequiresDatabaseCluster;
-
     protected $signature = 'database:get {database? : The database ID or name} {--json : Output as JSON}';
 
     protected $description = 'Get database cluster details';
@@ -18,29 +14,19 @@ class DatabaseGet extends BaseCommand
     {
         $this->ensureClient();
 
-        if (! $this->option('json')) {
-            if ($this->argument('database')) {
-                intro('Database Cluster Details: '.$this->argument('database'));
-            } else {
-                intro('Database Cluster Details');
-            }
-        }
+        intro('Database Cluster Details');
 
-        $database = $this->getDatabaseCluster(showPrompt: false);
+        $databaseCluster = $this->resolvers()->databaseCluster()->from($this->argument('database'));
 
-        if ($this->option('json')) {
-            $this->line($database->toJson());
-
-            return;
-        }
+        $this->outputJsonIfWanted($databaseCluster);
 
         dataList([
-            'ID' => $database->id,
-            'Name' => $database->name,
-            'Type' => $database->type,
-            'Status' => $database->status,
-            'Region' => $database->region,
-            'Schemas' => collect($database->schemas)->pluck('name')->toArray(),
+            'ID' => $databaseCluster->id,
+            'Name' => $databaseCluster->name,
+            'Type' => $databaseCluster->type,
+            'Status' => $databaseCluster->status,
+            'Region' => $databaseCluster->region,
+            'Schemas' => collect($databaseCluster->schemas)->pluck('name')->toArray(),
         ]);
     }
 }

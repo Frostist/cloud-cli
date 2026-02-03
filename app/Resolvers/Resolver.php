@@ -38,7 +38,7 @@ abstract class Resolver
         }
     }
 
-    public function shouldDisplayResolved(bool $displayResolved = true): self
+    public function shouldDisplayResolved(bool $displayResolved = true): static
     {
         $this->displayResolved = $displayResolved;
 
