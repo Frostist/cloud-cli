@@ -64,6 +64,9 @@ class ApplicationResolver extends Resolver
             options: $repoApps->mapWithKeys(fn ($app) => [$app->id => $app->name])->toArray(),
         );
 
+        // No need to display the resolved application name, it will be displayed from the select above
+        $this->displayResolved = false;
+
         return $repoApps->firstWhere('id', $selectedApp);
     }
 
