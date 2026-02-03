@@ -2,14 +2,11 @@
 
 namespace App\Dto;
 
-use App\Concerns\HasDescriptiveArray;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Data;
 
 class DatabaseType extends Data
 {
-    use HasDescriptiveArray;
-
     public function __construct(
         public readonly string $type,
         public readonly string $label,

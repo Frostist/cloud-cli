@@ -3,8 +3,8 @@
 namespace App\Commands;
 
 use App\Concerns\HasAClient;
+use App\Concerns\InteractsWithClipbboard;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Process;
 
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\select;
@@ -15,6 +15,7 @@ use function Laravel\Prompts\warning;
 class IpAddresses extends BaseCommand
 {
     use HasAClient;
+    use InteractsWithClipbboard;
 
     protected $signature = 'ip:addresses
                             {--json : Output as JSON}
@@ -72,11 +73,11 @@ class IpAddresses extends BaseCommand
         );
 
         if ($this->option('copy')) {
-            $this->copyToClipboard($addresses);
+            $this->copyToIpsToClipboard($addresses);
         }
     }
 
-    protected function copyToClipboard(Collection $addresses): void
+    protected function copyToIpsToClipboard(Collection $addresses): void
     {
         if ($addresses->hasSole()) {
             $regionToCopy = $addresses->keys()->first();
@@ -95,7 +96,7 @@ class IpAddresses extends BaseCommand
         $ips = $addresses->first(fn ($ips, $region) => $region === $regionToCopy)[$ipTypeToCopy];
         $text = trim(implode(PHP_EOL, $ips));
 
-        Process::run(sprintf('echo "%s" | pbcopy', $text));
+        $this->copyToClipboard($text);
 
         success('IP addresses copied to clipboard');
     }

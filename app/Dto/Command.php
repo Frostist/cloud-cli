@@ -2,7 +2,6 @@
 
 namespace App\Dto;
 
-use App\Concerns\HasDescriptiveArray;
 use App\Enums\CommandStatus;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
@@ -13,8 +12,6 @@ use Spatie\LaravelData\Data;
 
 class Command extends Data
 {
-    use HasDescriptiveArray;
-
     public function __construct(
         public readonly string $id,
         public readonly string $command,

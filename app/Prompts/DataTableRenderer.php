@@ -28,21 +28,16 @@ class DataTableRenderer extends Renderer
 
         $tableLines = [];
 
-        $rows = collect($prompt->visible())->map(
-            fn ($row, $index) => $index === $prompt->index
-                ? collect($row)->map(fn ($cell) => new TableCell(
-                    $cell,
-                    ['style' => $selectedStyle],
-                ))
-                : $row,
-        )->toArray();
+        $rows = $prompt->visible();
 
         if (count($rows) > 0) {
-            $rows[$prompt->index] = collect($rows[$prompt->index])->map(
-                fn ($cell) => new TableCell($cell, ['style' => $selectedStyle]),
-            )->all();
+            if ($prompt->state === 'browse') {
+                $rows[$prompt->index] = collect($rows[$prompt->index])->map(
+                    fn ($cell) => new TableCell($cell, ['style' => $selectedStyle]),
+                )->all();
+            }
 
-            $tableLines = $this->table($rows, $prompt->headers);
+            $tableLines = $this->table($prompt, $rows, $prompt->headers);
             $this->tableWidth = mb_strwidth($this->stripEscapeSequences($tableLines[0])) - 1;
         }
 
@@ -85,14 +80,19 @@ class DataTableRenderer extends Renderer
         return $this;
     }
 
-    protected function table($rows, $headers): array
+    protected function table(DataTable $prompt, $rows, $headers): array
     {
 
         $tableStyle = (new TableStyle)
             ->setHorizontalBorderChars('─')
             ->setVerticalBorderChars('│', '│')
-            ->setCellHeaderFormat($this->dim('<fg=default>%s</>'))
-            ->setCellRowFormat('<fg=default>%s</>');
+            ->setCellHeaderFormat('<fg=default>%s</>');
+
+        if ($prompt->state === 'search') {
+            $tableStyle->setCellRowFormat('<fg=gray>%s</>');
+        } else {
+            $tableStyle->setCellRowFormat('<fg=default>%s</>');
+        }
 
         if (empty($headers)) {
             $tableStyle->setCrossingChars('┼', '', '', '', '┤', '┘</>', '┴', '└', '├', '<fg=gray>╭', '┬', '╮');

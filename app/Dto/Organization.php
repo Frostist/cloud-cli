@@ -2,13 +2,10 @@
 
 namespace App\Dto;
 
-use App\Concerns\HasDescriptiveArray;
 use Spatie\LaravelData\Data;
 
 class Organization extends Data
 {
-    use HasDescriptiveArray;
-
     public function __construct(
         public readonly string $id,
         public readonly string $name,

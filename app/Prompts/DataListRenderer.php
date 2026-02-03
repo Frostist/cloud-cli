@@ -16,20 +16,19 @@ class DataListRenderer extends Renderer
                 $this->bullet($this->dim($key));
                 $first = false;
             } else {
+                $this->lineWithBorder('');
                 $this->lineWithBorder($this->dim($key));
             }
 
             $value = match (true) {
                 is_array($value) => $value,
-                $value === null, $value === '' => ['—'],
+                $value === null, trim($value) === '' => ['—'],
                 default => explode(PHP_EOL, $value),
             };
 
             foreach ($value as $item) {
                 $this->lineWithBorder($this->green(trim($item)));
             }
-
-            $this->lineWithBorder('');
         }
 
         return $this;

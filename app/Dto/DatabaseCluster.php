@@ -2,7 +2,6 @@
 
 namespace App\Dto;
 
-use App\Concerns\HasDescriptiveArray;
 use Carbon\CarbonImmutable;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Attributes\WithCast;
@@ -11,8 +10,6 @@ use Spatie\LaravelData\Data;
 
 class DatabaseCluster extends Data
 {
-    use HasDescriptiveArray;
-
     public function __construct(
         public readonly string $id,
         public readonly string $name,

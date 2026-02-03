@@ -2,7 +2,6 @@
 
 namespace App\Dto;
 
-use App\Concerns\HasDescriptiveArray;
 use App\Enums\FilesystemJurisdiction;
 use App\Enums\FilesystemStatus;
 use App\Enums\FilesystemType;
@@ -15,8 +14,6 @@ use Spatie\LaravelData\Data;
 
 class ObjectStorageBucket extends Data
 {
-    use HasDescriptiveArray;
-
     public function __construct(
         public readonly string $id,
         public readonly string $name,

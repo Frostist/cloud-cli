@@ -2,7 +2,6 @@
 
 namespace App\Dto;
 
-use App\Concerns\HasDescriptiveArray;
 use App\Enums\EnvironmentStatus;
 use Carbon\CarbonImmutable;
 use Spatie\LaravelData\Attributes\WithCast;
@@ -12,8 +11,6 @@ use Spatie\LaravelData\Data;
 
 class Environment extends Data
 {
-    use HasDescriptiveArray;
-
     public function __construct(
         public readonly string $id,
         public readonly string $url,

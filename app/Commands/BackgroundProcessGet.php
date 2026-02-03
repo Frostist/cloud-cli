@@ -27,6 +27,21 @@ class BackgroundProcessGet extends BaseCommand
 
         info("Background Process: {$process->id}");
 
-        dataList($process->descriptiveArray());
+        dataList([
+            'ID' => $process->id,
+            'Command' => $process->command,
+            'Instances' => $process->instances,
+            'Type' => $process->type,
+            'Queue' => $process->queue,
+            'Connection' => $process->connection,
+            'Timeout' => $process->timeout,
+            'Sleep' => $process->sleep,
+            'Tries' => $process->tries,
+            'Max Processes' => $process->maxProcesses,
+            'Min Processes' => $process->minProcesses,
+            'Created At' => $process->createdAt?->format('Y-m-d H:i:s') ?? '—',
+            'Updated At' => $process->updatedAt?->format('Y-m-d H:i:s') ?? '—',
+            'Instance ID' => $process->instanceId,
+        ]);
     }
 }
