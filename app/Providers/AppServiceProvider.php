@@ -7,8 +7,10 @@ use App\Middleware\RequiresAuthToken;
 use App\Middleware\SuppressOutputIfJson;
 use App\Prompts\Answered;
 use App\Prompts\DynamicSpinner;
+use App\Prompts\Renderer as PromptRenderer;
 use App\Prompts\SpinnerRenderer;
 use App\Prompts\TextPromptRenderer;
+use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -16,6 +18,8 @@ use Laravel\Prompts\Prompt;
 use RuntimeException;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+
+use function Laravel\Prompts\outro;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -69,7 +73,16 @@ class AppServiceProvider extends ServiceProvider
         }
 
         Event::listen(CommandStarting::class, function (CommandStarting $event) use ($manager) {
+            PromptRenderer::resetOutroFlag();
             $manager->handleCommandStarting($event);
+        });
+
+        Event::listen(CommandFinished::class, function (CommandFinished $event) {
+            if (! PromptRenderer::commandAlreadyShowedOutro()) {
+                outro('');
+            }
+
+            PromptRenderer::resetOutroFlag();
         });
     }
 

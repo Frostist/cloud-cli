@@ -28,11 +28,17 @@ class NoteRenderer extends Renderer
 
                 foreach ($lines as $line) {
                     $line = str_pad($line, $longest, ' ');
-                    $this->line($this->cyan(TimelineSymbol::DOT->value.$spacer.$line));
+
+                    if (trim($line) === '') {
+                        $this->line($this->dim(TimelineSymbol::LINE->value.$spacer.$line));
+                    } else {
+                        $this->line($this->cyan(TimelineSymbol::DOT->value.$spacer.$line));
+                    }
                 }
 
                 if ($note->type === 'outro') {
                     $this->prompt->state = 'initial';
+                    static::markCommandShowedOutro();
                 }
 
                 return $this;

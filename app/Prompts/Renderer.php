@@ -9,7 +9,24 @@ abstract class Renderer extends BaseRenderer
 {
     public static bool $suppressOutput = false;
 
+    protected static bool $commandAlreadyShowedOutro = false;
+
     protected $skipTopBorder = false;
+
+    public static function commandAlreadyShowedOutro(): bool
+    {
+        return self::$commandAlreadyShowedOutro;
+    }
+
+    public static function markCommandShowedOutro(): void
+    {
+        self::$commandAlreadyShowedOutro = true;
+    }
+
+    public static function resetOutroFlag(): void
+    {
+        self::$commandAlreadyShowedOutro = false;
+    }
 
     protected function lineWithBorder(string $message): self
     {

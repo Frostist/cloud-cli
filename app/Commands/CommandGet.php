@@ -6,7 +6,6 @@ use App\Concerns\HasAClient;
 use App\Concerns\InteractsWithClipbboard;
 
 use function Laravel\Prompts\intro;
-use function Laravel\Prompts\outro;
 
 class CommandGet extends BaseCommand
 {
@@ -43,7 +42,5 @@ class CommandGet extends BaseCommand
             $this->copyToClipboard($cmd->output ?? '');
             success('Output copied to clipboard');
         }
-
-        outro('');
     }
 }
