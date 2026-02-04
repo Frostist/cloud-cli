@@ -8,11 +8,11 @@ use Illuminate\Support\Facades\Process;
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\outro;
 
-class Web extends BaseCommand
+class Dashboard extends BaseCommand
 {
     use RequiresRemoteGitRepo;
 
-    protected $signature = 'web
+    protected $signature = 'dashboard
                             {application? : The application ID or name}';
 
     protected $description = 'Open the application in the Cloud dashboard';

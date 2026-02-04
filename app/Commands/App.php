@@ -8,15 +8,15 @@ use Illuminate\Support\Facades\Process;
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\outro;
 
-class Open extends BaseCommand
+class App extends BaseCommand
 {
     use RequiresRemoteGitRepo;
 
-    protected $signature = 'open
+    protected $signature = 'app
                             {application? : The application ID or name}
                             {environment? : The name of the environment to deploy} ';
 
-    protected $description = 'Open the site in the browser';
+    protected $description = 'Open the application in the browser';
 
     public function handle()
     {

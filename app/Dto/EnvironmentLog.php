@@ -18,7 +18,7 @@ class EnvironmentLog extends Data
         public readonly LogLevel $level,
         #[WithCast(EnumCast::class)]
         public readonly LogType $type,
-        #[WithCast(DateTimeInterfaceCast::class, type: CarbonImmutable::class)]
+        #[WithCast(DateTimeInterfaceCast::class, type: CarbonImmutable::class, format: ['Y-m-d\TH:i:s\Z', 'Y-m-d\TH:i:s.u\Z'])]
         public readonly CarbonImmutable $loggedAt,
         public readonly ?array $data = null,
     ) {

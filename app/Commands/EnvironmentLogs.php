@@ -2,14 +2,13 @@
 
 namespace App\Commands;
 
-use App\Enums\LogLevel;
-use App\Enums\LogType;
-use Carbon\CarbonInterval;
-use Illuminate\Support\Sleep;
+use App\Prompts\EnvironmentLogsPrompt;
+use Carbon\CarbonImmutable;
 
 use function Laravel\Prompts\info;
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\spin;
+use function Laravel\Prompts\warning;
 
 class EnvironmentLogs extends BaseCommand
 {
@@ -17,6 +16,9 @@ class EnvironmentLogs extends BaseCommand
                             {application? : The application ID or name}
                             {environment? : The name of the environment}
                             {--from= : Start time for filtering logs}
+                            {--days= : Number of days to fetch logs}
+                            (--hours= : Number of hours to fetch logs}
+                            (--minutes= : Number of minutes to fetch logs}
                             {--to= : End time for filtering logs}
                             {--json : Output as JSON}
                             {--tail= : Number of lines to show from the end}
@@ -33,87 +35,68 @@ class EnvironmentLogs extends BaseCommand
         $app = $this->resolvers()->application()->from($this->argument('application'));
         $environment = $this->resolvers()->environment()->withApplication($app)->from($this->argument('environment'));
 
-        $from = $this->option('from') ?? now()->subDays(1)->toIso8601String();
-        $to = $this->option('to') ?? now()->toIso8601String();
+        $from = $this->resolveFrom();
+        $to = $this->resolveTo();
+
+        if ($this->option('to')) {
+            info("Fetching logs between {$from->toDateTimeString()} and {$to->toDateTimeString()}");
+        } else {
+            info("Fetching logs since {$from->toDateTimeString()}");
+        }
 
         $logs = spin(
             fn () => $this->client->environments()->logs($environment->id, $from, $to),
             'Fetching logs...',
         );
 
-        if ($this->option('json')) {
-            $this->line(json_encode($logs, JSON_PRETTY_PRINT));
-
-            return;
-        }
-
         if (empty($logs)) {
-            info('No logs found.');
+            warning('No logs found.');
 
             return;
         }
+
         $tail = $this->option('tail');
 
         if ($tail && is_numeric($tail)) {
             $logs = array_slice($logs, -(int) $tail);
         }
 
-        $this->newLine();
+        $this->outputJsonIfWanted($logs);
 
-        // foreach ($logs as $log) {
-        //     $this->line((string) $log);
-        // }
-
-        if ($this->option('live')) {
-            $this->liveLogs($environment->id, $from, $to);
-        }
+        (new EnvironmentLogsPrompt(
+            logs: $logs,
+            live: (bool) $this->option('live'),
+            fetchLogs: fn (string $fetchFrom, string $fetchTo) => $this->client->environments()->logs($environment->id, $fetchFrom, $fetchTo),
+            from: $from,
+            to: $to,
+        ))->display();
     }
 
-    protected function liveLogs(string $environmentId, string $from, string $to): void
+    protected function resolveFrom(): CarbonImmutable
     {
-        $lastSeenCount = 0;
-
-        while (true) {
-            Sleep::for(CarbonInterval::seconds(3));
-
-            $logs = $this->client->environments()->logs($environmentId, $from, $to);
-
-            foreach ($logs as $log) {
-                $timestamp = $log->loggedAt->format('Y-m-d H:i:s');
-                $level = strtoupper($log->level->value);
-                $levelColor = match ($log->level) {
-                    LogLevel::INFO => 'green',
-                    LogLevel::WARNING => 'yellow',
-                    LogLevel::ERROR => 'red',
-                    LogLevel::DEBUG => 'blue',
-                };
-                $type = $log->type->value;
-                $typeColor = match ($log->type) {
-                    LogType::ACCESS => 'cyan',
-                    LogType::APPLICATION => 'green',
-                    LogType::EXCEPTION => 'red',
-                    LogType::SYSTEM => 'blue',
-                };
-
-                $output = $this->dim("[{$timestamp}]").' '.$this->{$levelColor}($level).' '.$this->{$typeColor}($type)." {$log->message}";
-
-                if ($log->isAccessLog() && $accessData = $log->getAccessData()) {
-                    $output .= " | {$accessData['method']} {$accessData['path']} | {$accessData['status']} | {$accessData['duration_ms']}ms";
-                }
-
-                if ($log->isExceptionLog() && $exceptionData = $log->getExceptionData()) {
-                    $output .= " | {$exceptionData['class']}";
-
-                    if ($exceptionData['code']) {
-                        $output .= " ({$exceptionData['code']})";
-                    }
-                }
-
-                $this->line($output);
-            }
-
-            $from = $to;
-            $to = now()->toIso8601String();
+        if ($this->option('from')) {
+            return CarbonImmutable::parse($this->option('from'));
         }
+
+        $now = CarbonImmutable::now();
+
+        if ($this->option('days')) {
+            return $now->subDays($this->option('days'));
+        }
+
+        if ($this->option('hours')) {
+            return $now->subHours($this->option('hours'));
+        }
+
+        if ($this->option('minutes')) {
+            return $now->subMinutes($this->option('minutes'));
+        }
+
+        return $now->subDay();
+    }
+
+    protected function resolveTo(): CarbonImmutable
+    {
+        return CarbonImmutable::parse($this->option('to') ?? CarbonImmutable::now());
     }
 }

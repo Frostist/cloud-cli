@@ -11,7 +11,7 @@ trait DrawsThemeBoxes
         box as parentBox;
     }
 
-    public function box(string $title, string $body, string $footer = '', string $color = 'gray', string $info = '', TimelineSymbol $symbol = TimelineSymbol::PENDING): self
+    public function box(string $title, string $body, string $footer = '', string $color = 'gray', string $info = '', ?TimelineSymbol $symbol = TimelineSymbol::PENDING): self
     {
         $originalOutput = $this->output;
         $this->output = '';
@@ -31,6 +31,10 @@ trait DrawsThemeBoxes
             ->map(function ($line, $index) use ($symbol) {
                 if (! strlen($line)) {
                     return $line;
+                }
+
+                if ($symbol === null) {
+                    return TimelineSymbol::LINE->value.' '.$line;
                 }
 
                 $color = $symbol->color();

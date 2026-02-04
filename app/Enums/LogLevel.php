@@ -11,6 +11,16 @@ enum LogLevel: string
 
     public function label(): string
     {
-        return ucfirst($this->value);
+        return strtoupper($this->value);
+    }
+
+    public function color(): string
+    {
+        return match ($this) {
+            self::INFO => 'green',
+            self::WARNING => 'yellow',
+            self::ERROR => 'red',
+            self::DEBUG => 'blue',
+        };
     }
 }

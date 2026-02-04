@@ -15,7 +15,6 @@ use App\Client\Resources\Environments\StartEnvironmentRequest;
 use App\Client\Resources\Environments\StopEnvironmentRequest;
 use App\Client\Resources\Environments\UpdateEnvironmentRequest;
 use App\Dto\Environment;
-use App\Dto\EnvironmentLog;
 use Saloon\PaginationPlugin\Paginator;
 
 class EnvironmentsResource
@@ -79,18 +78,18 @@ class EnvironmentsResource
 
     public function logs(string $environmentId, string $from, string $to, ?string $cursor = null, ?string $type = null, ?string $query = null): array
     {
-        $response = $this->connector->send(new ListEnvironmentLogsRequest(
+        $request = new ListEnvironmentLogsRequest(
             environmentId: $environmentId,
             from: $from,
             to: $to,
             cursor: $cursor,
             type: $type,
-            query: $query,
-        ));
+            queryString: $query,
+        );
 
-        $responseData = $response->json();
+        $response = $this->connector->send($request);
 
-        return collect($responseData['data'] ?? [])->map(fn ($item) => EnvironmentLog::createFromResponse($item))->toArray();
+        return $request->createDtoFromResponse($response);
     }
 
     public function addVariables(string $environmentId, array $variables): void
