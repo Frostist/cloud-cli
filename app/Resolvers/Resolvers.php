@@ -50,6 +50,11 @@ class Resolvers
         return $this->make(DeploymentResolver::class);
     }
 
+    public function domain(): DomainResolver
+    {
+        return $this->make(DomainResolver::class);
+    }
+
     protected function make(string $resolver): Resolver
     {
         return new $resolver($this->client, $this->localConfig, $this->isInteractive);

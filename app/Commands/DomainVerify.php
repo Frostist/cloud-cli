@@ -6,11 +6,12 @@ use Illuminate\Http\Client\RequestException;
 
 use function Laravel\Prompts\error;
 use function Laravel\Prompts\intro;
+use function Laravel\Prompts\outro;
 use function Laravel\Prompts\spin;
 
 class DomainVerify extends BaseCommand
 {
-    protected $signature = 'domain:verify {domain : The domain ID} {--json : Output as JSON}';
+    protected $signature = 'domain:verify {domain? : The domain ID} {--json : Output as JSON}';
 
     protected $description = 'Verify domain DNS records are properly set up';
 
@@ -20,15 +21,17 @@ class DomainVerify extends BaseCommand
 
         intro('Verifying Domain');
 
+        $domain = $this->resolvers()->domain()->from($this->argument('domain'));
+
         try {
-            spin(
-                fn () => $this->client->domains()->verify($this->argument('domain')),
+            $domain = spin(
+                fn () => $this->client->domains()->verify($domain->id),
                 'Verifying domain...',
             );
 
-            $this->outputJsonIfWanted('Domain verification completed.');
+            $this->outputJsonIfWanted($domain);
 
-            success('Domain verification completed.');
+            outro("Domain verification request completed: {$domain->name}");
         } catch (RequestException $e) {
             error('Failed to verify domain: '.$e->getMessage());
 

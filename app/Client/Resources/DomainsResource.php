@@ -58,8 +58,12 @@ class DomainsResource extends Resource
         $this->send(new DeleteDomainRequest($domainId));
     }
 
-    public function verify(string $domainId): void
+    public function verify(string $domainId): Domain
     {
-        $this->send(new VerifyDomainRequest($domainId));
+        $request = new VerifyDomainRequest($domainId);
+
+        $response = $this->send($request);
+
+        return $request->createDtoFromResponse($response);
     }
 }

@@ -38,10 +38,10 @@ class DomainList extends BaseCommand
         }
 
         dataTable(
-            headers: ['ID', 'Domain', 'Status', 'Primary'],
+            headers: ['ID', 'Name', 'Status', 'Primary'],
             rows: $items->map(fn ($domain) => [
                 $domain->id,
-                $domain->domain,
+                $domain->name,
                 $domain->status,
                 $domain->isPrimary ? 'Yes' : 'No',
             ])->toArray(),
