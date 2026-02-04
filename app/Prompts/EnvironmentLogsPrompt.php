@@ -23,13 +23,15 @@ class EnvironmentLogsPrompt extends Prompt
 
     public int $interval = 75;
 
-    public int $checkEvery = 3;
+    public int $checkEvery = 10;
 
     public ?CarbonImmutable $lastCheck = null;
 
     public ?CarbonImmutable $loopStartedAt = null;
 
     public bool $fade = true;
+
+    protected $firstRender = true;
 
     /**
      * @param  array<int, EnvironmentLog>  $logs
@@ -66,15 +68,13 @@ class EnvironmentLogsPrompt extends Prompt
 
         $keyPressListener = KeyPressListener::for($this)->listenForQuit();
 
-        static::output()->write($this->renderTheme());
+        $this->loopStartedAt ??= CarbonImmutable::now();
+        $this->render();
+        $this->logs = [];
+        $this->from = $this->to;
+        $this->to = CarbonImmutable::now()->toIso8601String();
 
-        while (true) {
-            if ($this->loopStartedAt === null) {
-                $this->loopStartedAt = CarbonImmutable::now();
-            }
-
-            static::writeDirectly($this->renderTheme());
-
+        while (true) { // @phpstan-ignore-line
             $this->count++;
 
             $now = CarbonImmutable::now();
@@ -83,6 +83,7 @@ class EnvironmentLogsPrompt extends Prompt
 
             if ($shouldFetch && $this->fetchLogs && $this->from !== null && $this->to !== null) {
                 $newLogs = ($this->fetchLogs)($this->from, $this->to);
+
                 $this->logs = $newLogs;
                 $this->from = $this->to;
                 $this->to = $now->toIso8601String();
@@ -91,8 +92,27 @@ class EnvironmentLogsPrompt extends Prompt
 
             $keyPressListener->once();
 
+            $this->render();
+            $this->logs = [];
+
             Sleep::for(CarbonInterval::milliseconds($this->interval));
         }
+    }
+
+    public function renderDirectly(string $output): void
+    {
+        if (! $this->firstRender) {
+            $this->moveCursorUp(3);
+            $this->eraseDown();
+        }
+
+        static::writeDirectly($output.($this->firstRender ? '' : str_repeat(PHP_EOL, 3)));
+
+        if (! $this->firstRender) {
+            $this->moveCursor(999, 999);
+        }
+
+        $this->firstRender = false;
     }
 
     public function prompt(): never

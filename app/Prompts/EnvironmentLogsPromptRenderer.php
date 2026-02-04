@@ -2,6 +2,7 @@
 
 namespace App\Prompts;
 
+use App\Concerns\CapturesOutput;
 use App\Concerns\DrawsThemeBoxes;
 use App\Dto\EnvironmentLog;
 use Carbon\CarbonImmutable;
@@ -11,6 +12,7 @@ use Throwable;
 
 class EnvironmentLogsPromptRenderer extends Renderer
 {
+    use CapturesOutput;
     use DrawsThemeBoxes;
     use InteractsWithStrings;
 
@@ -21,34 +23,42 @@ class EnvironmentLogsPromptRenderer extends Renderer
 
     public function __invoke(EnvironmentLogsPrompt $prompt): string
     {
-        foreach ($prompt->logs as $log) {
-            $this->writeLog($log);
-        }
-
-        if ($prompt->live) {
-            $checkingIn = $prompt->loopStartedAt === null
-                ? $prompt->checkEvery
-                : ($prompt->lastCheck === null
-                    ? max(0, $prompt->checkEvery - (int) $prompt->loopStartedAt->diffInSeconds(CarbonImmutable::now()))
-                    : max(0, $prompt->checkEvery - (int) $prompt->lastCheck->diffInSeconds(CarbonImmutable::now())));
-
-            $message = $this->dim(
-                'Checking for logs in '.
-                    CarbonInterval::seconds($checkingIn)->format('%I:%S'),
-            );
-
-            $frame = $this->frames[$prompt->count % count($this->frames)];
-
-            if ($checkingIn < 1) {
-                $message .= ' '.$this->cyan($frame).' '.($prompt->fade ? $this->dim('Checking for logs...') : 'Checking for logs...');
-                $prompt->fade = false;
-            } elseif (! $prompt->fade) {
-                $message .= ' '.$this->cyan($frame).' '.$this->dim('Checking for logs...');
-                $prompt->fade = true;
+        $output = $this->captureOutput(function () use ($prompt) {
+            foreach ($prompt->logs as $log) {
+                $this->writeLog($log);
             }
+        });
 
-            $this->lineWithBorder($message);
+        if ($output !== '') {
+            $prompt->renderDirectly($output);
         }
+
+        if (! $prompt->live) {
+            return $this;
+        }
+
+        $checkingIn = $prompt->loopStartedAt === null
+            ? $prompt->checkEvery
+            : ($prompt->lastCheck === null
+                ? max(0, $prompt->checkEvery - (int) $prompt->loopStartedAt->diffInSeconds(CarbonImmutable::now()))
+                : max(0, $prompt->checkEvery - (int) $prompt->lastCheck->diffInSeconds(CarbonImmutable::now())));
+
+        $message = $this->dim(
+            'Checking for logs in '.
+                CarbonInterval::seconds($checkingIn)->format('%I:%S'),
+        );
+
+        $frame = $this->frames[$prompt->count % count($this->frames)];
+
+        if ($checkingIn < 1) {
+            $message .= ' '.$this->cyan($frame).' '.($prompt->fade ? $this->dim('Checking for logs...') : 'Checking for logs...');
+            $prompt->fade = false;
+        } elseif (! $prompt->fade) {
+            $message .= ' '.$this->cyan($frame).' '.$this->dim('Checking for logs...');
+            $prompt->fade = true;
+        }
+
+        $this->lineWithBorder($message);
 
         return (string) $this;
     }
