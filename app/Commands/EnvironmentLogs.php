@@ -17,8 +17,8 @@ class EnvironmentLogs extends BaseCommand
                             {environment? : The name of the environment}
                             {--from= : Start time for filtering logs}
                             {--days= : Number of days to fetch logs}
-                            (--hours= : Number of hours to fetch logs}
-                            (--minutes= : Number of minutes to fetch logs}
+                            {--hours= : Number of hours to fetch logs}
+                            {--minutes= : Number of minutes to fetch logs}
                             {--to= : End time for filtering logs}
                             {--json : Output as JSON}
                             {--tail= : Number of lines to show from the end}
