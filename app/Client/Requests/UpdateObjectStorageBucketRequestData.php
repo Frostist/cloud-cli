@@ -6,13 +6,17 @@ class UpdateObjectStorageBucketRequestData implements RequestDataInterface
 {
     public function __construct(
         public readonly string $bucketId,
-        public readonly array $data,
+        public readonly ?string $name = null,
+        public readonly ?string $visibility = null,
     ) {
         //
     }
 
     public function toRequestData(): array
     {
-        return $this->data;
+        return array_filter([
+            'name' => $this->name,
+            'visibility' => $this->visibility,
+        ], fn ($value) => $value !== null);
     }
 }

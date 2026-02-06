@@ -6,13 +6,17 @@ class UpdateBackgroundProcessRequestData implements RequestDataInterface
 {
     public function __construct(
         public readonly string $backgroundProcessId,
-        public readonly array $data,
+        public readonly ?string $command = null,
+        public readonly ?int $instances = null,
     ) {
         //
     }
 
     public function toRequestData(): array
     {
-        return $this->data;
+        return array_filter([
+            'command' => $this->command,
+            'instances' => $this->instances,
+        ], fn ($value) => $value !== null);
     }
 }

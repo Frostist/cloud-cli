@@ -7,13 +7,15 @@ class UpdateWebSocketApplicationRequestData implements RequestDataInterface
     public function __construct(
         public readonly string $clusterId,
         public readonly string $applicationId,
-        public readonly array $data,
+        public readonly ?string $name = null,
     ) {
         //
     }
 
     public function toRequestData(): array
     {
-        return $this->data;
+        return array_filter([
+            'name' => $this->name,
+        ], fn ($value) => $value !== null);
     }
 }
