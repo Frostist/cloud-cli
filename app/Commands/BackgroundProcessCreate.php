@@ -95,8 +95,6 @@ class BackgroundProcessCreate extends BaseCommand
 
         $type = $this->fields()->get('type');
         $processes = (int) $this->fields()->get('processes');
-        $config = null;
-        $command = null;
 
         if ($type === 'worker') {
             $config = collect([
@@ -121,8 +119,8 @@ class BackgroundProcessCreate extends BaseCommand
                     instanceId: $instanceId,
                     type: $type,
                     processes: $processes,
-                    command: $command,
-                    config: $config,
+                    command: $command ?? null,
+                    config: $config ?? null,
                 ),
             ),
             'Creating background process...',
