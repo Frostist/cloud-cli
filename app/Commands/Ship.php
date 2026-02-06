@@ -95,9 +95,9 @@ class Ship extends BaseCommand
             );
 
             if ($selectedApp !== 'new') {
-                $this->call('deploy', [
+                $this->call(Deploy::class, [
                     'application' => $selectedApp,
-                ], $this->output);
+                ]);
 
                 return;
             }
@@ -137,9 +137,9 @@ class Ship extends BaseCommand
             $this->updateCommands($environment);
         }
 
-        $this->call('deploy', [
+        $this->call(Deploy::class, [
             'application' => $application->id,
-        ], $this->output);
+        ]);
 
         if (confirm('Open site in browser?')) {
             $isReady = spin(
@@ -158,7 +158,7 @@ class Ship extends BaseCommand
                     $this->call(EnvironmentLogs::class, [
                         'application' => $application->id,
                         'environment' => $environment->id,
-                    ], $this->output);
+                    ]);
 
                     return;
                 }
@@ -396,7 +396,7 @@ class Ship extends BaseCommand
 
             if ($createWebsocketCluster) {
                 return $this->loopUntilValid(
-                    fn () => $this->createWebSocketCluster($this->websocketClusterDefaults()),
+                    fn () => $this->createWebSocketCluster(),
                 );
             }
 

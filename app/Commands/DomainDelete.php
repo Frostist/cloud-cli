@@ -30,7 +30,7 @@ class DomainDelete extends BaseCommand
                 'Fetching domain...',
             );
 
-            if (! confirm("Delete domain '{$domain->domain}'?")) {
+            if (! confirm("Delete domain '{$domain->name}'?")) {
                 info('Cancelled.');
 
                 return;

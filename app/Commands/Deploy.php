@@ -106,6 +106,7 @@ class Deploy extends BaseCommand
         $checkInterval = 3;
         $updateInterval = 900;
         $lastMessage = '';
+        $deploymentStatus = $this->client->deployments()->get($deployment->id);
 
         do {
             if ($checkApi) {

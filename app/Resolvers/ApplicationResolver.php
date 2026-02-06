@@ -88,7 +88,7 @@ class ApplicationResolver extends Resolver
         // No need to display the resolved application name, it will be displayed from the select above
         $this->displayResolved = false;
 
-        return $apps->fromCollection($apps, $selectedApp);
+        return $this->fromCollection($apps, $selectedApp);
     }
 
     public function fromCollection(Collection|LazyCollection $apps, string $identifier): ?Application
