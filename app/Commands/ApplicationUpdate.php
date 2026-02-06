@@ -3,7 +3,6 @@
 namespace App\Commands;
 
 use App\Concerns\HandlesAvatars;
-use App\Concerns\Validates;
 use App\Dto\Application;
 use App\Git;
 use App\Support\UpdateFields;
@@ -21,7 +20,6 @@ use function Laravel\Prompts\text;
 class ApplicationUpdate extends BaseCommand
 {
     use HandlesAvatars;
-    use Validates;
 
     protected $signature = 'application:update
                             {application? : The application ID or name}

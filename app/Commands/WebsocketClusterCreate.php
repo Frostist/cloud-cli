@@ -4,7 +4,6 @@ namespace App\Commands;
 
 use App\Concerns\CreatesWebSocketCluster;
 use App\Concerns\DeterminesDefaultRegion;
-use App\Concerns\Validates;
 
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\outro;
@@ -13,7 +12,6 @@ class WebsocketClusterCreate extends BaseCommand
 {
     use CreatesWebSocketCluster;
     use DeterminesDefaultRegion;
-    use Validates;
 
     protected $signature = 'websocket-cluster:create
                             {--name= : Cluster name}

@@ -8,8 +8,6 @@ use function Laravel\Prompts\textarea;
 
 trait UpdatesBuildDeployCommands
 {
-    use Validates;
-
     protected function updateCommands(Environment $environment): void
     {
         $data = [];

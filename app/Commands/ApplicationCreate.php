@@ -4,7 +4,6 @@ namespace App\Commands;
 
 use App\Concerns\DeterminesDefaultRegion;
 use App\Concerns\RequiresRemoteGitRepo;
-use App\Concerns\Validates;
 use App\Dto\Region;
 use App\Git;
 
@@ -18,7 +17,6 @@ class ApplicationCreate extends BaseCommand
 {
     use DeterminesDefaultRegion;
     use RequiresRemoteGitRepo;
-    use Validates;
 
     protected $signature = 'application:create
                             {--name= : Application name}

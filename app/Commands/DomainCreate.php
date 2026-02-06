@@ -2,8 +2,6 @@
 
 namespace App\Commands;
 
-use App\Concerns\Validates;
-
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\outro;
@@ -13,8 +11,6 @@ use function Laravel\Prompts\text;
 
 class DomainCreate extends BaseCommand
 {
-    use Validates;
-
     protected $signature = 'domain:create
                             {environment? : The environment ID or name}
                             {--name= : The domain name}

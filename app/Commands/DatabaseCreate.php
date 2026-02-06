@@ -3,7 +3,6 @@
 namespace App\Commands;
 
 use App\Concerns\CreatesDatabase;
-use App\Concerns\Validates;
 
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\outro;
@@ -11,7 +10,6 @@ use function Laravel\Prompts\outro;
 class DatabaseCreate extends BaseCommand
 {
     use CreatesDatabase;
-    use Validates;
 
     protected $signature = 'database:create
                             {database-cluster? : The database cluster ID or name}

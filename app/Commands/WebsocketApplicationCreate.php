@@ -3,7 +3,6 @@
 namespace App\Commands;
 
 use App\Concerns\CreatesWebSocketApplication;
-use App\Concerns\Validates;
 
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\outro;
@@ -11,7 +10,6 @@ use function Laravel\Prompts\outro;
 class WebsocketApplicationCreate extends BaseCommand
 {
     use CreatesWebSocketApplication;
-    use Validates;
 
     protected $signature = 'websocket-application:create
                             {cluster? : The WebSocket cluster ID or name}

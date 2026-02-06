@@ -9,7 +9,6 @@ use App\Concerns\CreatesWebSocketCluster;
 use App\Concerns\HandlesAvatars;
 use App\Concerns\RequiresRemoteGitRepo;
 use App\Concerns\UpdatesBuildDeployCommands;
-use App\Concerns\Validates;
 use App\Dto\Application;
 use App\Dto\Database;
 use App\Dto\DatabaseCluster;
@@ -45,7 +44,6 @@ class Ship extends BaseCommand
     use HandlesAvatars;
     use RequiresRemoteGitRepo;
     use UpdatesBuildDeployCommands;
-    use Validates;
 
     protected $signature = 'ship';
 

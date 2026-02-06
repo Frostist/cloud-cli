@@ -4,7 +4,6 @@ namespace App\Commands;
 
 use App\Concerns\CreatesDatabaseCluster;
 use App\Concerns\DeterminesDefaultRegion;
-use App\Concerns\Validates;
 
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\outro;
@@ -13,7 +12,6 @@ class DatabaseClusterCreate extends BaseCommand
 {
     use CreatesDatabaseCluster;
     use DeterminesDefaultRegion;
-    use Validates;
 
     protected $signature = 'database-cluster:create
                             {--name= : Database cluster name}
