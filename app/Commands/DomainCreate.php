@@ -2,6 +2,8 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\CreateDomainRequestData;
+
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\outro;
@@ -85,15 +87,15 @@ class DomainCreate extends BaseCommand
         );
 
         return spin(
-            fn () => $this->client->domains()->create(
-                $environmentId,
-                $this->$this->fields()->get('name'),
-                [
+            fn () => $this->client->domains()->create(new CreateDomainRequestData(
+                environmentId: $environmentId,
+                name: $this->$this->fields()->get('name'),
+                data: [
                     'www_redirect' => $this->$this->fields()->get('www_redirect'),
                     'wildcard_enabled' => $this->$this->fields()->get('wildcard_enabled'),
                     'verification_method' => $this->$this->fields()->get('verification_method'),
                 ],
-            ),
+            )),
             'Creating domain...',
         );
     }

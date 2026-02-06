@@ -2,6 +2,8 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\UpdateObjectStorageBucketRequestData;
+
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\spin;
 
@@ -40,7 +42,10 @@ class BucketUpdate extends BaseCommand
         }
 
         $updated = spin(
-            fn () => $this->client->objectStorageBuckets()->update($bucket->id, $data),
+            fn () => $this->client->objectStorageBuckets()->update(new UpdateObjectStorageBucketRequestData(
+                bucketId: $bucket->id,
+                data: $data,
+            )),
             'Updating bucket...',
         );
 

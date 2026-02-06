@@ -2,6 +2,7 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\UpdateApplicationRequestData;
 use App\Concerns\HandlesAvatars;
 use App\Dto\Application;
 use App\Git;
@@ -97,7 +98,15 @@ class ApplicationUpdate extends BaseCommand
     protected function updateApplication(Application $application, array $data): Application
     {
         spin(
-            fn () => $this->client->applications()->update($application->id, $data),
+            fn () => $this->client->applications()->update(new UpdateApplicationRequestData(
+                applicationId: $application->id,
+                name: $data['name'] ?? null,
+                slug: $data['slug'] ?? null,
+                defaultEnvironmentId: $data['default_environment_id'] ?? null,
+                repository: $data['repository'] ?? null,
+                slackChannel: $data['slack_channel'] ?? null,
+                avatar: $data['avatar'] ?? null,
+            )),
             'Updating application...',
         );
 

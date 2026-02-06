@@ -2,6 +2,8 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\UpdateBucketKeyRequestData;
+
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\spin;
 
@@ -42,7 +44,11 @@ class BucketKeyUpdate extends BaseCommand
         }
 
         $updated = spin(
-            fn () => $this->client->bucketKeys()->update($bucket->id, $key->id, $data),
+            fn () => $this->client->bucketKeys()->update(new UpdateBucketKeyRequestData(
+                bucketId: $bucket->id,
+                keyId: $key->id,
+                data: $data,
+            )),
             'Updating key...',
         );
 

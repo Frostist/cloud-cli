@@ -30,9 +30,9 @@ class DatabaseSnapshotsResource extends Resource
         return $request->createDtoFromResponse($response);
     }
 
-    public function create(string $clusterId): DatabaseSnapshot
+    public function create(CreateDatabaseSnapshotRequestData $data): DatabaseSnapshot
     {
-        $request = new CreateDatabaseSnapshotRequest(new CreateDatabaseSnapshotRequestData($clusterId));
+        $request = new CreateDatabaseSnapshotRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);

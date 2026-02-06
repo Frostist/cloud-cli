@@ -26,9 +26,9 @@ class DeploymentsResource extends Resource
         return $request->createDtoFromResponse($response);
     }
 
-    public function initiate(string $environmentId): Deployment
+    public function initiate(InitiateDeploymentRequestData $data): Deployment
     {
-        $request = new InitiateDeploymentRequest(new InitiateDeploymentRequestData($environmentId));
+        $request = new InitiateDeploymentRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);

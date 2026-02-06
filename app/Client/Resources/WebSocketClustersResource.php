@@ -29,26 +29,17 @@ class WebSocketClustersResource extends Resource
         return $request->createDtoFromResponse($response);
     }
 
-    public function create(string $name, string $region, int $maxConnections): WebsocketCluster
+    public function create(CreateWebSocketClusterRequestData $data): WebsocketCluster
     {
-        $request = new CreateWebSocketClusterRequest(new CreateWebSocketClusterRequestData(
-            name: $name,
-            region: $region,
-            maxConnections: $maxConnections,
-        ));
+        $request = new CreateWebSocketClusterRequest($data);
         $response = $this->send($request);
 
-        $dto = $request->createDtoFromResponse($response);
-
-        return $dto;
+        return $request->createDtoFromResponse($response);
     }
 
-    public function update(string $clusterId, array $data): WebsocketCluster
+    public function update(UpdateWebSocketClusterRequestData $data): WebsocketCluster
     {
-        $request = new UpdateWebSocketClusterRequest(new UpdateWebSocketClusterRequestData(
-            clusterId: $clusterId,
-            data: $data,
-        ));
+        $request = new UpdateWebSocketClusterRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);

@@ -2,6 +2,8 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\UpdateWebSocketApplicationRequestData;
+
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\text;
@@ -38,7 +40,11 @@ class WebsocketApplicationUpdate extends BaseCommand
         );
 
         $updated = spin(
-            fn () => $this->client->websocketApplications()->update($cluster->id, $app->id, ['name' => $name]),
+            fn () => $this->client->websocketApplications()->update(new UpdateWebSocketApplicationRequestData(
+                clusterId: $cluster->id,
+                applicationId: $app->id,
+                data: ['name' => $name],
+            )),
             'Updating WebSocket application...',
         );
 

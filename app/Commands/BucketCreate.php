@@ -2,6 +2,7 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\CreateObjectStorageBucketRequestData;
 use App\Concerns\DeterminesDefaultRegion;
 use App\Dto\Region;
 
@@ -82,11 +83,11 @@ class BucketCreate extends BaseCommand
         );
 
         return spin(
-            fn () => $this->client->objectStorageBuckets()->create(
-                $this->$this->fields()->get('name'),
-                $this->$this->fields()->get('region'),
-                $this->$this->fields()->get('visibility'),
-            ),
+            fn () => $this->client->objectStorageBuckets()->create(new CreateObjectStorageBucketRequestData(
+                name: $this->$this->fields()->get('name'),
+                region: $this->$this->fields()->get('region'),
+                visibility: $this->$this->fields()->get('visibility'),
+            )),
             'Creating bucket...',
         );
     }

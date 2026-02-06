@@ -8,14 +8,9 @@ use App\Dto\DatabaseCluster;
 
 class DatabaseRestoresResource extends Resource
 {
-    public function create(string $clusterId, ?string $snapshotId = null, ?string $pointInTime = null): DatabaseCluster
+    public function create(CreateDatabaseRestoreRequestData $data): DatabaseCluster
     {
-        $request = new CreateDatabaseRestoreRequest(new CreateDatabaseRestoreRequestData(
-            clusterId: $clusterId,
-            snapshotId: $snapshotId,
-            pointInTime: $pointInTime,
-        ));
-
+        $request = new CreateDatabaseRestoreRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);

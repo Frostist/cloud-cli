@@ -2,6 +2,8 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\CreateBackgroundProcessRequestData;
+
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\outro;
@@ -113,7 +115,10 @@ class BackgroundProcessCreate extends BaseCommand
         }
 
         return spin(
-            fn () => $this->client->backgroundProcesses()->create($instanceId, $data),
+            fn () => $this->client->backgroundProcesses()->create(new CreateBackgroundProcessRequestData(
+                instanceId: $instanceId,
+                data: $data,
+            )),
             'Creating background process...',
         );
     }

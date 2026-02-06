@@ -30,13 +30,9 @@ class DatabasesResource extends Resource
         return $request->createDtoFromResponse($response);
     }
 
-    public function create(string $clusterId, string $name): Database
+    public function create(CreateDatabaseRequestData $data): Database
     {
-        $request = new CreateDatabaseRequest(new CreateDatabaseRequestData(
-            clusterId: $clusterId,
-            name: $name,
-        ));
-
+        $request = new CreateDatabaseRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);

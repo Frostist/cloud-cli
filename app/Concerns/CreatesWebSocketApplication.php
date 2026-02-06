@@ -2,6 +2,7 @@
 
 namespace App\Concerns;
 
+use App\Client\Requests\CreateWebSocketApplicationRequestData;
 use App\Dto\WebsocketApplication;
 use App\Dto\WebsocketCluster;
 
@@ -24,7 +25,10 @@ trait CreatesWebSocketApplication
         );
 
         return spin(
-            fn () => $this->client->websocketApplications()->create($cluster->id, ['name' => $this->$this->fields()->get('name')]),
+            fn () => $this->client->websocketApplications()->create(new CreateWebSocketApplicationRequestData(
+                clusterId: $cluster->id,
+                data: ['name' => $this->$this->fields()->get('name')],
+            )),
             'Creating WebSocket application...',
         );
     }

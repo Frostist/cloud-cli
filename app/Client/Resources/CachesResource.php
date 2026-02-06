@@ -30,25 +30,17 @@ class CachesResource extends Resource
         return $request->createDtoFromResponse($response);
     }
 
-    public function create(string $type, string $name, string $region, array $config): Cache
+    public function create(CreateCacheRequestData $data): Cache
     {
-        $request = new CreateCacheRequest(new CreateCacheRequestData(
-            type: $type,
-            name: $name,
-            region: $region,
-            configData: $config,
-        ));
+        $request = new CreateCacheRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);
     }
 
-    public function update(string $cacheId, array $data): Cache
+    public function update(UpdateCacheRequestData $data): Cache
     {
-        $request = new UpdateCacheRequest(new UpdateCacheRequestData(
-            cacheId: $cacheId,
-            data: $data,
-        ));
+        $request = new UpdateCacheRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);

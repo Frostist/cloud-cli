@@ -2,6 +2,7 @@
 
 namespace App\Concerns;
 
+use App\Client\Requests\UpdateEnvironmentRequestData;
 use App\Dto\Environment;
 
 use function Laravel\Prompts\textarea;
@@ -27,7 +28,10 @@ trait UpdatesBuildDeployCommands
         $this->loopUntilValid(
             function () use ($environment, $data) {
                 return dynamicSpinner(
-                    fn () => $this->client->environments()->update($environment->id, $data),
+                    fn () => $this->client->environments()->update(new UpdateEnvironmentRequestData(
+                        environmentId: $environment->id,
+                        data: $data,
+                    )),
                     'Updating commands',
                 );
             },

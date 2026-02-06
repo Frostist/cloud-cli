@@ -2,6 +2,7 @@
 
 namespace App\Concerns;
 
+use App\Client\Requests\CreateWebSocketClusterRequestData;
 use App\Dto\Region;
 use App\Dto\WebsocketCluster;
 
@@ -54,11 +55,11 @@ trait CreatesWebSocketCluster
         );
 
         return spin(
-            fn () => $this->client->websocketClusters()->create(
-                $this->$this->fields()->get('name'),
-                $this->$this->fields()->get('region'),
-                (int) $this->$this->fields()->get('max_connections'),
-            ),
+            fn () => $this->client->websocketClusters()->create(new CreateWebSocketClusterRequestData(
+                name: $this->$this->fields()->get('name'),
+                region: $this->$this->fields()->get('region'),
+                maxConnections: (int) $this->$this->fields()->get('max_connections'),
+            )),
             'Creating WebSocket cluster...',
         );
     }

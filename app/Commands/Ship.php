@@ -2,6 +2,10 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\CreateApplicationRequestData;
+use App\Client\Requests\UpdateApplicationRequestData;
+use App\Client\Requests\UpdateEnvironmentRequestData;
+use App\Client\Requests\UpdateInstanceRequestData;
 use App\Concerns\CreatesDatabase;
 use App\Concerns\CreatesDatabaseCluster;
 use App\Concerns\CreatesWebSocketApplication;
@@ -173,9 +177,11 @@ class Ship extends BaseCommand
         }
 
         try {
-            $this->client->applications()->update($application->id, [
-                'avatar' => $avatars->first(),
-            ]);
+            $path = $avatars->first();
+            $this->client->applications()->update(new UpdateApplicationRequestData(
+                applicationId: $application->id,
+                avatar: [file_get_contents($path), pathinfo($path, PATHINFO_EXTENSION)],
+            ));
         } catch (Throwable $e) {
             // All good, this is a nice bonus but not critical
         }
@@ -223,11 +229,11 @@ class Ship extends BaseCommand
         );
 
         return dynamicSpinner(
-            fn () => $this->client->applications()->create(
-                $repository,
-                $this->$this->fields()->get('name'),
-                $this->$this->fields()->get('region'),
-            ),
+            fn () => $this->client->applications()->create(new CreateApplicationRequestData(
+                repository: $repository,
+                name: $this->$this->fields()->get('name'),
+                region: $this->$this->fields()->get('region'),
+            )),
             'Creating application',
         );
     }
@@ -321,7 +327,10 @@ class Ship extends BaseCommand
         if (count($instanceParams) > 0) {
             $this->loopUntilValid(
                 fn () => spin(
-                    fn () => $this->client->instances()->update($environment->instances[0], $instanceParams),
+                    fn () => $this->client->instances()->update(new UpdateInstanceRequestData(
+                        instanceId: $environment->instances[0],
+                        data: $instanceParams,
+                    )),
                     'Updating instance...',
                 ),
             );
@@ -335,7 +344,10 @@ class Ship extends BaseCommand
                         Sleep::for(CarbonInterval::seconds(5));
                     }
 
-                    return spin(fn () => $this->client->environments()->update($environment->id, $environmentParams), 'Updating environment...');
+                    return spin(fn () => $this->client->environments()->update(new UpdateEnvironmentRequestData(
+                        environmentId: $environment->id,
+                        data: $environmentParams,
+                    )), 'Updating environment...');
                 },
             );
         }

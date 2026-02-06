@@ -33,30 +33,17 @@ class ObjectStorageBucketsResource extends Resource
         return $request->createDtoFromResponse($response);
     }
 
-    public function create(string $name, string $region, string $visibility, ?string $jurisdiction = null, ?array $allowedOrigins = null, ?string $keyName = null, ?string $keyPermission = null): ObjectStorageBucket
+    public function create(CreateObjectStorageBucketRequestData $data): ObjectStorageBucket
     {
-        $request = new CreateObjectStorageBucketRequest(new CreateObjectStorageBucketRequestData(
-            name: $name,
-            region: $region,
-            visibility: $visibility,
-            jurisdiction: $jurisdiction,
-            allowedOrigins: $allowedOrigins,
-            keyName: $keyName,
-            keyPermission: $keyPermission,
-        ));
-
+        $request = new CreateObjectStorageBucketRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);
     }
 
-    public function update(string $bucketId, array $data): ObjectStorageBucket
+    public function update(UpdateObjectStorageBucketRequestData $data): ObjectStorageBucket
     {
-        $request = new UpdateObjectStorageBucketRequest(new UpdateObjectStorageBucketRequestData(
-            bucketId: $bucketId,
-            data: $data,
-        ));
-
+        $request = new UpdateObjectStorageBucketRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);

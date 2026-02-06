@@ -13,7 +13,7 @@ class UpdateApplicationRequestData implements RequestDataInterface
         public readonly ?string $defaultEnvironmentId = null,
         public readonly ?string $repository = null,
         public readonly ?string $slackChannel = null,
-        public readonly ?MultipartValue $avatar = null,
+        public readonly ?array $avatar = null,
     ) {
         //
     }
@@ -28,8 +28,14 @@ class UpdateApplicationRequestData implements RequestDataInterface
             'slack_channel' => $this->slackChannel,
         ]);
 
-        if ($this->avatar !== null) {
-            $body['avatar'] = $this->avatar;
+        if (isset($this->avatar) && is_array($this->avatar) && count($this->avatar) === 2) {
+            [$avatarContent, $extension] = $this->avatar;
+
+            $body['avatar'] = new MultipartValue(
+                name: 'avatar',
+                value: $avatarContent,
+                filename: 'avatar.'.$extension,
+            );
         }
 
         return $body;

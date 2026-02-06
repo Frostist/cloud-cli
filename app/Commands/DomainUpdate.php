@@ -2,6 +2,7 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\UpdateDomainRequestData;
 use App\Dto\Domain;
 use App\Support\UpdateFields;
 
@@ -102,7 +103,10 @@ class DomainUpdate extends BaseCommand
     protected function updateDomain(Domain $domain, array $data): Domain
     {
         spin(
-            fn () => $this->client->domains()->update($domain->id, $data),
+            fn () => $this->client->domains()->update(new UpdateDomainRequestData(
+                domainId: $domain->id,
+                data: $data,
+            )),
             'Updating domain...',
         );
 

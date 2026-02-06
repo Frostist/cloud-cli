@@ -2,6 +2,7 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\UpdateCacheRequestData;
 use App\Dto\Cache;
 use App\Support\UpdateFields;
 
@@ -89,7 +90,10 @@ class CacheUpdate extends BaseCommand
     protected function updateCache(Cache $cache, array $data): Cache
     {
         spin(
-            fn () => $this->client->caches()->update($cache->id, $data),
+            fn () => $this->client->caches()->update(new UpdateCacheRequestData(
+                cacheId: $cache->id,
+                data: $data,
+            )),
             'Updating cache...',
         );
 

@@ -2,6 +2,7 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\InitiateDeploymentRequestData;
 use App\Concerns\RequiresRemoteGitRepo;
 use App\Concerns\UpdatesBuildDeployCommands;
 use App\Dto\Deployment;
@@ -60,7 +61,7 @@ class Deploy extends BaseCommand
 
         $environment = $this->resolvers()->environment()->withApplication($app)->from($this->argument('environment'));
 
-        $deployment = $this->client->deployments()->initiate($environment->id);
+        $deployment = $this->client->deployments()->initiate(new InitiateDeploymentRequestData($environment->id));
 
         dynamicSpinner(
             fn (callable $updateMessage) => $this->updateDeploymentStatus($deployment, $updateMessage),

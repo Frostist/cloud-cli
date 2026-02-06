@@ -2,6 +2,7 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\RunCommandRequestData;
 use App\Concerns\InteractsWithClipbboard;
 use App\Dto\Command;
 use App\Prompts\MonitorCommand;
@@ -62,10 +63,10 @@ class CommandRun extends BaseCommand
         );
 
         return dynamicSpinner(
-            fn () => $this->client->commands()->run(
-                $environmentId,
-                $this->$this->fields()->get('command'),
-            ),
+            fn () => $this->client->commands()->run(new RunCommandRequestData(
+                environmentId: $environmentId,
+                command: $this->$this->fields()->get('command'),
+            )),
             'Running command...',
         );
     }

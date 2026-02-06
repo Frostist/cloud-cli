@@ -38,26 +38,17 @@ class EnvironmentsResource extends Resource
         return $request->createDtoFromResponse($response);
     }
 
-    public function create(string $applicationId, string $name, ?string $branch = null): Environment
+    public function create(CreateEnvironmentRequestData $data): Environment
     {
-        $request = new CreateEnvironmentRequest(new CreateEnvironmentRequestData(
-            applicationId: $applicationId,
-            name: $name,
-            branch: $branch,
-        ));
-
+        $request = new CreateEnvironmentRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);
     }
 
-    public function update(string $environmentId, array $data): Environment
+    public function update(UpdateEnvironmentRequestData $data): Environment
     {
-        $request = new UpdateEnvironmentRequest(new UpdateEnvironmentRequestData(
-            environmentId: $environmentId,
-            data: $data,
-        ));
-
+        $request = new UpdateEnvironmentRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);

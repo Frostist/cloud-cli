@@ -2,6 +2,7 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\CreateEnvironmentRequestData;
 use App\Git;
 
 use function Laravel\Prompts\intro;
@@ -59,11 +60,11 @@ class EnvironmentCreate extends BaseCommand
         );
 
         return spin(
-            fn () => $this->client->environments()->create(
-                $applicationId,
-                $this->$this->fields()->get('name'),
-                $this->$this->fields()->get('branch'),
-            ),
+            fn () => $this->client->environments()->create(new CreateEnvironmentRequestData(
+                applicationId: $applicationId,
+                name: $this->$this->fields()->get('name'),
+                branch: $this->$this->fields()->get('branch'),
+            )),
             'Creating environment...',
         );
     }

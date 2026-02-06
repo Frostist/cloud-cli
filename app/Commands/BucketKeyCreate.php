@@ -2,6 +2,8 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\CreateBucketKeyRequestData;
+
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\outro;
 use function Laravel\Prompts\select;
@@ -38,7 +40,11 @@ class BucketKeyCreate extends BaseCommand
         );
 
         $key = spin(
-            fn () => $this->client->bucketKeys()->create($bucket->id, $name, $permission),
+            fn () => $this->client->bucketKeys()->create(new CreateBucketKeyRequestData(
+                bucketId: $bucket->id,
+                name: $name,
+                permission: $permission,
+            )),
             'Creating key...',
         );
 

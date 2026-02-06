@@ -2,6 +2,7 @@
 
 namespace App\Concerns;
 
+use App\Client\Requests\CreateDatabaseClusterRequestData;
 use App\Dto\DatabaseCluster;
 use App\Dto\DatabaseType;
 use App\Dto\Region;
@@ -87,12 +88,12 @@ trait CreatesDatabaseCluster
         $config = $this->databaseClusterConfigFromPreset($selectedType) ?? $this->promptForDatabaseClusterConfig($selectedType);
 
         return spin(
-            fn () => $this->client->databaseClusters()->create(
-                $this->$this->fields()->get('type'),
-                $this->$this->fields()->get('name'),
-                $this->$this->fields()->get('region'),
-                $config,
-            ),
+            fn () => $this->client->databaseClusters()->create(new CreateDatabaseClusterRequestData(
+                type: $this->$this->fields()->get('type'),
+                name: $this->$this->fields()->get('name'),
+                region: $this->$this->fields()->get('region'),
+                clusterConfig: $config,
+            )),
             'Creating database cluster...',
         );
     }

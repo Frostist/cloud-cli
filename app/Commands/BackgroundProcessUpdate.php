@@ -2,6 +2,7 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\UpdateBackgroundProcessRequestData;
 use App\Dto\BackgroundProcess;
 use App\Support\UpdateFields;
 
@@ -88,7 +89,10 @@ class BackgroundProcessUpdate extends BaseCommand
     protected function updateProcess(BackgroundProcess $process, array $data): BackgroundProcess
     {
         spin(
-            fn () => $this->client->backgroundProcesses()->update($process->id, $data),
+            fn () => $this->client->backgroundProcesses()->update(new UpdateBackgroundProcessRequestData(
+                backgroundProcessId: $process->id,
+                data: $data,
+            )),
             'Updating background process...',
         );
 

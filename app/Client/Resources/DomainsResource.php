@@ -31,26 +31,17 @@ class DomainsResource extends Resource
         return $request->createDtoFromResponse($response);
     }
 
-    public function create(string $environmentId, string $name, array $data): Domain
+    public function create(CreateDomainRequestData $data): Domain
     {
-        $request = new CreateDomainRequest(new CreateDomainRequestData(
-            environmentId: $environmentId,
-            name: $name,
-            data: $data,
-        ));
-
+        $request = new CreateDomainRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);
     }
 
-    public function update(string $domainId, array $data): Domain
+    public function update(UpdateDomainRequestData $data): Domain
     {
-        $request = new UpdateDomainRequest(new UpdateDomainRequestData(
-            domainId: $domainId,
-            data: $data,
-        ));
-
+        $request = new UpdateDomainRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);

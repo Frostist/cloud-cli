@@ -30,25 +30,17 @@ class InstancesResource extends Resource
         return $request->createDtoFromResponse($response);
     }
 
-    public function create(string $environmentId, array $data): EnvironmentInstance
+    public function create(CreateInstanceRequestData $data): EnvironmentInstance
     {
-        $request = new CreateInstanceRequest(new CreateInstanceRequestData(
-            environmentId: $environmentId,
-            data: $data,
-        ));
-
+        $request = new CreateInstanceRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);
     }
 
-    public function update(string $instanceId, array $data): EnvironmentInstance
+    public function update(UpdateInstanceRequestData $data): EnvironmentInstance
     {
-        $request = new UpdateInstanceRequest(new UpdateInstanceRequestData(
-            instanceId: $instanceId,
-            data: $data,
-        ));
-
+        $request = new UpdateInstanceRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);

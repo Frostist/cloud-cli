@@ -2,6 +2,7 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\CreateApplicationRequestData;
 use App\Concerns\DeterminesDefaultRegion;
 use App\Concerns\RequiresRemoteGitRepo;
 use App\Dto\Region;
@@ -89,11 +90,11 @@ class ApplicationCreate extends BaseCommand
         );
 
         return spin(
-            fn () => $this->client->applications()->create(
-                $this->fields()->get('repository'),
-                $this->fields()->get('name'),
-                $this->fields()->get('region'),
-            ),
+            fn () => $this->client->applications()->create(new CreateApplicationRequestData(
+                repository: $this->fields()->get('repository'),
+                name: $this->fields()->get('name'),
+                region: $this->fields()->get('region'),
+            )),
             'Creating application...',
         );
     }

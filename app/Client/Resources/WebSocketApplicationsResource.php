@@ -32,24 +32,17 @@ class WebSocketApplicationsResource extends Resource
         return $request->createDtoFromResponse($response);
     }
 
-    public function create(string $clusterId, array $data): WebsocketApplication
+    public function create(CreateWebSocketApplicationRequestData $data): WebsocketApplication
     {
-        $request = new CreateWebSocketApplicationRequest(new CreateWebSocketApplicationRequestData(
-            clusterId: $clusterId,
-            data: $data,
-        ));
+        $request = new CreateWebSocketApplicationRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);
     }
 
-    public function update(string $clusterId, string $applicationId, array $data): WebsocketApplication
+    public function update(UpdateWebSocketApplicationRequestData $data): WebsocketApplication
     {
-        $request = new UpdateWebSocketApplicationRequest(new UpdateWebSocketApplicationRequestData(
-            clusterId: $clusterId,
-            applicationId: $applicationId,
-            data: $data,
-        ));
+        $request = new UpdateWebSocketApplicationRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);

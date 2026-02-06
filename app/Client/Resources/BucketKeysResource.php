@@ -32,25 +32,17 @@ class BucketKeysResource extends Resource
         return $request->createDtoFromResponse($response);
     }
 
-    public function create(string $bucketId, string $name, string $permission): BucketKey
+    public function create(CreateBucketKeyRequestData $data): BucketKey
     {
-        $request = new CreateBucketKeyRequest(new CreateBucketKeyRequestData(
-            bucketId: $bucketId,
-            name: $name,
-            permission: $permission,
-        ));
+        $request = new CreateBucketKeyRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);
     }
 
-    public function update(string $bucketId, string $keyId, array $data): BucketKey
+    public function update(UpdateBucketKeyRequestData $data): BucketKey
     {
-        $request = new UpdateBucketKeyRequest(new UpdateBucketKeyRequestData(
-            bucketId: $bucketId,
-            keyId: $keyId,
-            data: $data,
-        ));
+        $request = new UpdateBucketKeyRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);

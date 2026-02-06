@@ -2,6 +2,7 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\UpdateDatabaseClusterRequestData;
 use App\Dto\DatabaseCluster;
 use App\Dto\DatabaseType;
 use App\Support\UpdateFields;
@@ -109,7 +110,10 @@ class DatabaseClusterUpdate extends BaseCommand
         $config = array_merge($database->config, $configUpdates);
 
         spin(
-            fn () => $this->client->databaseClusters()->update($database->id, ['config' => $config]),
+            fn () => $this->client->databaseClusters()->update(new UpdateDatabaseClusterRequestData(
+                clusterId: $database->id,
+                data: ['config' => $config],
+            )),
             'Updating database cluster...',
         );
 

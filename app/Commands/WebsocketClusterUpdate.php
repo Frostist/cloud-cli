@@ -2,6 +2,8 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\UpdateWebSocketClusterRequestData;
+
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\text;
@@ -36,7 +38,10 @@ class WebsocketClusterUpdate extends BaseCommand
         );
 
         $updated = spin(
-            fn () => $this->client->websocketClusters()->update($cluster->id, ['name' => $name]),
+            fn () => $this->client->websocketClusters()->update(new UpdateWebSocketClusterRequestData(
+                clusterId: $cluster->id,
+                data: ['name' => $name],
+            )),
             'Updating WebSocket cluster...',
         );
 

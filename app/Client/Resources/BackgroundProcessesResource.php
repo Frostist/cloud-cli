@@ -29,25 +29,17 @@ class BackgroundProcessesResource extends Resource
         return $request->createDtoFromResponse($response);
     }
 
-    public function create(string $instanceId, array $data): BackgroundProcess
+    public function create(CreateBackgroundProcessRequestData $data): BackgroundProcess
     {
-        $request = new CreateBackgroundProcessRequest(new CreateBackgroundProcessRequestData(
-            instanceId: $instanceId,
-            data: $data,
-        ));
-
+        $request = new CreateBackgroundProcessRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);
     }
 
-    public function update(string $backgroundProcessId, array $data): BackgroundProcess
+    public function update(UpdateBackgroundProcessRequestData $data): BackgroundProcess
     {
-        $request = new UpdateBackgroundProcessRequest(new UpdateBackgroundProcessRequestData(
-            backgroundProcessId: $backgroundProcessId,
-            data: $data,
-        ));
-
+        $request = new UpdateBackgroundProcessRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);

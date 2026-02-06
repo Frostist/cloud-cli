@@ -26,13 +26,9 @@ class CommandsResource extends Resource
         return $request->createDtoFromResponse($response);
     }
 
-    public function run(string $environmentId, string $command): Command
+    public function run(RunCommandRequestData $data): Command
     {
-        $request = new RunCommandRequest(new RunCommandRequestData(
-            environmentId: $environmentId,
-            command: $command,
-        ));
-
+        $request = new RunCommandRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);

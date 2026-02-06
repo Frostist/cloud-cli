@@ -2,6 +2,8 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\CreateDatabaseRestoreRequestData;
+
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\outro;
 use function Laravel\Prompts\select;
@@ -73,7 +75,11 @@ class DatabaseRestoreCreate extends BaseCommand
         }
 
         $restored = spin(
-            fn () => $this->client->databaseRestores()->create($cluster->id, $snapshotId, $pointInTime),
+            fn () => $this->client->databaseRestores()->create(new CreateDatabaseRestoreRequestData(
+                clusterId: $cluster->id,
+                snapshotId: $snapshotId,
+                pointInTime: $pointInTime,
+            )),
             'Creating restore...',
         );
 

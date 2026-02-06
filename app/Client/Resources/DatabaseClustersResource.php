@@ -30,28 +30,17 @@ class DatabaseClustersResource extends Resource
         return $request->createDtoFromResponse($response);
     }
 
-    public function create(string $type, string $name, string $region, array $clusterConfig, ?int $clusterId = null): DatabaseCluster
+    public function create(CreateDatabaseClusterRequestData $data): DatabaseCluster
     {
-        $request = new CreateDatabaseClusterRequest(new CreateDatabaseClusterRequestData(
-            type: $type,
-            name: $name,
-            region: $region,
-            clusterConfig: $clusterConfig,
-            clusterId: $clusterId,
-        ));
-
+        $request = new CreateDatabaseClusterRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);
     }
 
-    public function update(string $clusterId, array $data): DatabaseCluster
+    public function update(UpdateDatabaseClusterRequestData $data): DatabaseCluster
     {
-        $request = new UpdateDatabaseClusterRequest(new UpdateDatabaseClusterRequestData(
-            clusterId: $clusterId,
-            data: $data,
-        ));
-
+        $request = new UpdateDatabaseClusterRequest($data);
         $response = $this->send($request);
 
         return $request->createDtoFromResponse($response);

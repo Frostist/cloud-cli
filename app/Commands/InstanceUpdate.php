@@ -2,6 +2,7 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\UpdateInstanceRequestData;
 use Illuminate\Http\Client\RequestException;
 
 use function Laravel\Prompts\error;
@@ -53,7 +54,10 @@ class InstanceUpdate extends BaseCommand
 
         try {
             $instance = spin(
-                fn () => $this->client->instances()->update($this->argument('instance'), $data),
+                fn () => $this->client->instances()->update(new UpdateInstanceRequestData(
+                    instanceId: $this->argument('instance'),
+                    data: $data,
+                )),
                 'Updating instance...',
             );
 

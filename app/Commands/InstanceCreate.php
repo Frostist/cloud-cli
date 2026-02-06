@@ -2,6 +2,7 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\CreateInstanceRequestData;
 use App\Enums\InstanceSize;
 
 use function Laravel\Prompts\confirm;
@@ -159,10 +160,10 @@ class InstanceCreate extends BaseCommand
         );
 
         return spin(
-            fn () => $this->client->instances()->create(
-                $environmentId,
-                $this->$this->fields()->all(),
-            ),
+            fn () => $this->client->instances()->create(new CreateInstanceRequestData(
+                environmentId: $environmentId,
+                data: $this->$this->fields()->all(),
+            )),
             'Creating instance...',
         );
     }

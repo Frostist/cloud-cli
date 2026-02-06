@@ -2,6 +2,8 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\CreateDatabaseSnapshotRequestData;
+
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\outro;
 use function Laravel\Prompts\spin;
@@ -23,7 +25,7 @@ class DatabaseSnapshotCreate extends BaseCommand
         $cluster = $this->resolvers()->databaseCluster()->from($this->argument('database-cluster'));
 
         $snapshot = spin(
-            fn () => $this->client->databaseSnapshots()->create($cluster->id),
+            fn () => $this->client->databaseSnapshots()->create(new CreateDatabaseSnapshotRequestData($cluster->id)),
             'Creating snapshot...',
         );
 

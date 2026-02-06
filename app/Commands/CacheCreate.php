@@ -2,6 +2,7 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\CreateCacheRequestData;
 use App\Concerns\DeterminesDefaultRegion;
 use App\Dto\Region;
 
@@ -97,12 +98,12 @@ class CacheCreate extends BaseCommand
         );
 
         return spin(
-            fn () => $this->client->caches()->create(
-                $this->$this->fields()->get('type'),
-                $this->$this->fields()->get('name'),
-                $this->$this->fields()->get('region'),
-                [],
-            ),
+            fn () => $this->client->caches()->create(new CreateCacheRequestData(
+                type: $this->$this->fields()->get('type'),
+                name: $this->$this->fields()->get('name'),
+                region: $this->$this->fields()->get('region'),
+                configData: [],
+            )),
             'Creating cache...',
         );
     }

@@ -2,6 +2,7 @@
 
 namespace App\Commands;
 
+use App\Client\Requests\UpdateEnvironmentRequestData;
 use Illuminate\Http\Client\RequestException;
 
 use function Laravel\Prompts\error;
@@ -50,7 +51,10 @@ class EnvironmentUpdate extends BaseCommand
 
         try {
             $environment = spin(
-                fn () => $this->client->environments()->update($environment->id, $data),
+                fn () => $this->client->environments()->update(new UpdateEnvironmentRequestData(
+                    environmentId: $environment->id,
+                    data: $data,
+                )),
                 'Updating environment...',
             );
 

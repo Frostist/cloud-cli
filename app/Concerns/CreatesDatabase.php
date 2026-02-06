@@ -2,6 +2,7 @@
 
 namespace App\Concerns;
 
+use App\Client\Requests\CreateDatabaseRequestData;
 use App\Dto\Database;
 use App\Dto\DatabaseCluster;
 
@@ -30,7 +31,10 @@ trait CreatesDatabase
         );
 
         return spin(
-            fn () => $this->client->databases()->create($cluster->id, $this->$this->fields()->get('name')),
+            fn () => $this->client->databases()->create(new CreateDatabaseRequestData(
+                clusterId: $cluster->id,
+                name: $this->$this->fields()->get('name'),
+            )),
             'Creating database...',
         );
     }
@@ -38,7 +42,10 @@ trait CreatesDatabase
     protected function createDatabaseWithName(DatabaseCluster $cluster, string $name): Database
     {
         return spin(
-            fn () => $this->client->databases()->create($cluster->id, $name),
+            fn () => $this->client->databases()->create(new CreateDatabaseRequestData(
+                clusterId: $cluster->id,
+                name: $name,
+            )),
             'Creating database...',
         );
     }
