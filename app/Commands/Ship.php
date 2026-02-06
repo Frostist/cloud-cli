@@ -193,7 +193,7 @@ class Ship extends BaseCommand
 
     protected function createApplication(string $defaultRegion, string $repository): ?Application
     {
-        $this->addParam(
+        $this->$this->fields()->add(
             'name',
             fn ($resolver) => $resolver->fromInput(fn ($value) => text(
                 label: 'Application name',
@@ -202,7 +202,7 @@ class Ship extends BaseCommand
             )),
         );
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'region',
             fn ($resolver) => $resolver->fromInput(function ($value) use ($defaultRegion) {
                 $regions = spin(
@@ -225,8 +225,8 @@ class Ship extends BaseCommand
         return dynamicSpinner(
             fn () => $this->client->applications()->create(
                 $repository,
-                $this->getParam('name'),
-                $this->getParam('region'),
+                $this->$this->fields()->get('name'),
+                $this->$this->fields()->get('region'),
             ),
             'Creating application',
         );

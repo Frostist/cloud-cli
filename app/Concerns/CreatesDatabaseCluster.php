@@ -17,7 +17,7 @@ trait CreatesDatabaseCluster
 {
     protected function createDatabaseCluster(array $defaults = []): DatabaseCluster
     {
-        $this->addParam(
+        $this->$this->fields()->add(
             'name',
             fn ($resolver) => $resolver->fromInput(
                 fn (?string $value) => text(
@@ -41,7 +41,7 @@ trait CreatesDatabaseCluster
 
         $types = collect($types)->filter(fn (DatabaseType $type) => DatabaseClusterPreset::tryFrom($type->type) !== null)->values();
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'type',
             fn ($resolver) => $resolver->fromInput(
                 fn (?string $value) => select(
@@ -53,7 +53,7 @@ trait CreatesDatabaseCluster
             ),
         );
 
-        $selectedType = $types->firstWhere('type', $this->getParam('type'));
+        $selectedType = $types->firstWhere('type', $this->$this->fields()->get('type'));
 
         $regions = spin(
             fn () => $this->client->meta()->regions(),
@@ -70,7 +70,7 @@ trait CreatesDatabaseCluster
             $defaultRegion = null;
         }
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'region',
             fn ($resolver) => $resolver->fromInput(
                 fn (?string $value) => select(
@@ -88,9 +88,9 @@ trait CreatesDatabaseCluster
 
         return spin(
             fn () => $this->client->databaseClusters()->create(
-                $this->getParam('type'),
-                $this->getParam('name'),
-                $this->getParam('region'),
+                $this->$this->fields()->get('type'),
+                $this->$this->fields()->get('name'),
+                $this->$this->fields()->get('region'),
                 $config,
             ),
             'Creating database cluster...',

@@ -49,7 +49,7 @@ class CacheCreate extends BaseCommand
             $type['type'] ?? $type['id'] ?? '' => $type['label'] ?? $type['name'] ?? $type['type'] ?? $type['id'] ?? '',
         ])->filter()->toArray();
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'type',
             fn ($resolver) => $resolver
                 ->fromInput(fn (?string $value) => select(
@@ -61,7 +61,7 @@ class CacheCreate extends BaseCommand
                 ->nonInteractively(fn () => null),
         );
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'name',
             fn ($resolver) => $resolver->fromInput(
                 fn (?string $value) => text(
@@ -82,7 +82,7 @@ class CacheCreate extends BaseCommand
             'Fetching regions...',
         );
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'region',
             fn ($resolver) => $resolver
                 ->fromInput(fn (?string $value) => select(
@@ -98,9 +98,9 @@ class CacheCreate extends BaseCommand
 
         return spin(
             fn () => $this->client->caches()->create(
-                $this->getParam('type'),
-                $this->getParam('name'),
-                $this->getParam('region'),
+                $this->$this->fields()->get('type'),
+                $this->$this->fields()->get('name'),
+                $this->$this->fields()->get('region'),
                 [],
             ),
             'Creating cache...',

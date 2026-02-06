@@ -56,7 +56,7 @@ class InstanceCreate extends BaseCommand
 
     protected function createInstance(string $environmentId)
     {
-        $this->addParam(
+        $this->$this->fields()->add(
             'name',
             fn ($resolver) => $resolver->fromInput(
                 fn ($value) => text(
@@ -67,7 +67,7 @@ class InstanceCreate extends BaseCommand
             ),
         );
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'size',
             fn ($resolver) => $resolver->fromInput(
                 fn ($value) => search(
@@ -81,7 +81,7 @@ class InstanceCreate extends BaseCommand
             ),
         );
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'scaling_type',
             fn ($resolver) => $resolver->fromInput(
                 fn ($value) => select(
@@ -97,9 +97,9 @@ class InstanceCreate extends BaseCommand
             ),
         );
 
-        $isCustom = $this->getParam('scaling_type') === 'custom';
+        $isCustom = $this->$this->fields()->get('scaling_type') === 'custom';
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'min_replicas',
             fn ($resolver) => $resolver->fromInput(
                 fn ($value) => $isCustom ? number(
@@ -111,20 +111,20 @@ class InstanceCreate extends BaseCommand
             ),
         );
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'max_replicas',
             fn ($resolver) => $resolver->fromInput(
                 fn ($value) => $isCustom ? number(
                     label: 'Maximum replicas',
-                    default: $value ?? $this->getParam('min-replicas'),
-                    min: $this->getParam('min-replicas'),
+                    default: $value ?? $this->$this->fields()->get('min-replicas'),
+                    min: $this->$this->fields()->get('min-replicas'),
                     max: 10,
-                ) : $this->getParam('min-replicas'),
+                ) : $this->$this->fields()->get('min-replicas'),
             ),
         );
 
         if ($isCustom) {
-            $this->addParam(
+            $this->$this->fields()->add(
                 'scaling_cpu_threshold_percentage',
                 fn ($resolver) => $resolver->fromInput(fn ($value) => number(
                     label: 'Scaling CPU threshold percentage',
@@ -134,7 +134,7 @@ class InstanceCreate extends BaseCommand
                 )),
             );
 
-            $this->addParam(
+            $this->$this->fields()->add(
                 'scaling_memory_threshold_percentage',
                 fn ($resolver) => $resolver->fromInput(fn ($value) => number(
                     label: 'Scaling memory threshold percentage',
@@ -143,12 +143,12 @@ class InstanceCreate extends BaseCommand
             );
         }
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'type',
             fn ($resolver) => $resolver->fromInput(fn () => 'service'),
         );
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'uses_scheduler',
             fn ($resolver) => $resolver->fromInput(
                 fn ($value) => confirm(
@@ -161,7 +161,7 @@ class InstanceCreate extends BaseCommand
         return spin(
             fn () => $this->client->instances()->create(
                 $environmentId,
-                $this->getParams(),
+                $this->$this->fields()->all(),
             ),
             'Creating instance...',
         );

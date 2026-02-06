@@ -45,7 +45,7 @@ class BackgroundProcessCreate extends BaseCommand
     {
         $instanceId = $this->resolvers()->instance()->from($this->argument('instance'))->id;
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'type',
             fn ($resolver) => $resolver
                 ->fromInput(fn (?string $value) => select(
@@ -59,8 +59,8 @@ class BackgroundProcessCreate extends BaseCommand
                 )),
         );
 
-        if ($this->getParam('type') === 'custom') {
-            $this->addParam(
+        if ($this->$this->fields()->get('type') === 'custom') {
+            $this->$this->fields()->add(
                 'command',
                 fn ($resolver) => $resolver->fromInput(
                     fn (?string $value) => text(
@@ -74,7 +74,7 @@ class BackgroundProcessCreate extends BaseCommand
             $this->addWorkerParams();
         }
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'processes',
             fn ($resolver) => $resolver
                 ->fromInput(fn (?string $value) => text(
@@ -92,24 +92,24 @@ class BackgroundProcessCreate extends BaseCommand
         );
 
         $data = [
-            'type' => $this->getParam('type'),
-            'processes' => (int) $this->getParam('processes'),
+            'type' => $this->$this->fields()->get('type'),
+            'processes' => (int) $this->$this->fields()->get('processes'),
             'config' => [],
         ];
 
-        if ($this->getParam('type') === 'worker') {
+        if ($this->$this->fields()->get('type') === 'worker') {
             $data['config'] = [
-                'queue' => $this->getParam('queue', $this->getWorkerDefult('queue')),
-                'connection' => $this->getParam('connection', $this->getWorkerDefult('connection')),
-                'tries' => $this->getParam('tries', $this->getWorkerDefult('tries')),
-                'backoff' => $this->getParam('backoff', $this->getWorkerDefult('backoff')),
-                'sleep' => $this->getParam('sleep', $this->getWorkerDefult('sleep')),
-                'rest' => $this->getParam('rest', $this->getWorkerDefult('rest')),
-                'timeout' => $this->getParam('timeout', $this->getWorkerDefult('timeout')),
-                'force' => $this->getParam('force', $this->getWorkerDefult('force')),
+                'queue' => $this->$this->fields()->get('queue', $this->getWorkerDefult('queue')),
+                'connection' => $this->$this->fields()->get('connection', $this->getWorkerDefult('connection')),
+                'tries' => $this->$this->fields()->get('tries', $this->getWorkerDefult('tries')),
+                'backoff' => $this->$this->fields()->get('backoff', $this->getWorkerDefult('backoff')),
+                'sleep' => $this->$this->fields()->get('sleep', $this->getWorkerDefult('sleep')),
+                'rest' => $this->$this->fields()->get('rest', $this->getWorkerDefult('rest')),
+                'timeout' => $this->$this->fields()->get('timeout', $this->getWorkerDefult('timeout')),
+                'force' => $this->$this->fields()->get('force', $this->getWorkerDefult('force')),
             ];
         } else {
-            $data['command'] = $this->getParam('command');
+            $data['command'] = $this->$this->fields()->get('command');
         }
 
         return spin(
@@ -120,7 +120,7 @@ class BackgroundProcessCreate extends BaseCommand
 
     protected function addWorkerParams(): void
     {
-        $this->addParam(
+        $this->$this->fields()->add(
             'connection',
             fn ($resolver) => $resolver
                 ->fromInput(fn (?string $value) => text(
@@ -132,7 +132,7 @@ class BackgroundProcessCreate extends BaseCommand
                 ->shouldPromptOnce(),
         );
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'queue',
             fn ($resolver) => $resolver
                 ->fromInput(fn (?string $value) => text(
@@ -145,7 +145,7 @@ class BackgroundProcessCreate extends BaseCommand
                 ->shouldPromptOnce(),
         );
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'tries',
             fn ($resolver) => $resolver
                 ->fromInput(fn (?string $value) => text(
@@ -162,7 +162,7 @@ class BackgroundProcessCreate extends BaseCommand
                 ->shouldPromptOnce(),
         );
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'backoff',
             fn ($resolver) => $resolver
                 ->fromInput(fn (?string $value) => text(
@@ -179,7 +179,7 @@ class BackgroundProcessCreate extends BaseCommand
                 ->shouldPromptOnce(),
         );
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'sleep',
             fn ($resolver) => $resolver
                 ->fromInput(fn (?string $value) => text(
@@ -196,7 +196,7 @@ class BackgroundProcessCreate extends BaseCommand
                 ->shouldPromptOnce(),
         );
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'rest',
             fn ($resolver) => $resolver
                 ->fromInput(fn (?string $value) => text(
@@ -213,7 +213,7 @@ class BackgroundProcessCreate extends BaseCommand
                 ->shouldPromptOnce(),
         );
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'timeout',
             fn ($resolver) => $resolver
                 ->fromInput(fn (?string $value) => text(
@@ -230,7 +230,7 @@ class BackgroundProcessCreate extends BaseCommand
                 ->shouldPromptOnce(),
         );
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'force',
             fn ($resolver) => $resolver
                 ->fromInput(fn (?string $value) => confirm(

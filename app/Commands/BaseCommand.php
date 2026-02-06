@@ -5,6 +5,7 @@ namespace App\Commands;
 use App\Concerns\HasAClient;
 use App\Concerns\Validates;
 use App\Resolvers\Resolvers;
+use App\Support\CreateFields;
 use App\Support\ValueResolver;
 use Illuminate\Contracts\Support\Jsonable;
 use Laravel\Prompts\Concerns\Colors;
@@ -22,22 +23,16 @@ abstract class BaseCommand extends Command
     use HasAClient;
     use Validates;
 
-    /**
-     * @var array<string, ValueResolver>
-     */
-    protected array $paramCollectors = [];
+    protected CreateFields $createFields;
 
     protected ?Resolvers $resolvers;
 
-    /**
-     * @param  callable(ValueResolver): ValueResolver  $resolver
-     */
-    protected function addParam(string $name, callable $resolver): void
+    protected function fields(): CreateFields
     {
-        $existing = $this->paramCollectors[$name] ?? $this->resolve($name);
-
-        $this->paramCollectors[$name] = $resolver($existing)->errors($this->errors);
-        $this->paramCollectors[$name]->retrieve();
+        return $this->createFields ??= (new CreateFields)
+            ->options($this->options())
+            ->arguments($this->arguments())
+            ->isInteractive($this->isInteractive());
     }
 
     protected function resolvers(): Resolvers
@@ -82,29 +77,6 @@ abstract class BaseCommand extends Command
 
             throw $e;
         }
-    }
-
-    protected function getParam(string $name, mixed $default = null): ?string
-    {
-        if (! array_key_exists($name, $this->paramCollectors)) {
-            return $default;
-        }
-
-        return $this->paramCollectors[$name]?->value();
-    }
-
-    protected function getParams(): array
-    {
-        return collect($this->paramCollectors)->mapWithKeys(
-            fn (ValueResolver $resolver) => [
-                $resolver->key() => $resolver->value(),
-            ],
-        )->toArray();
-    }
-
-    protected function clearParams(): void
-    {
-        $this->paramCollectors = [];
     }
 
     protected function ensureInteractive(string $message): void
@@ -202,12 +174,12 @@ abstract class BaseCommand extends Command
         }
     }
 
-    protected function resolve(string $argument, ?string $value = null): ValueResolver
+    protected function resolve(string $argument): ValueResolver
     {
         return new ValueResolver(
             $argument,
             $this->isInteractive(),
-            $value ?? match (true) {
+            match (true) {
                 $this->hasOption($argument) => $this->option($argument),
                 $this->hasArgument($argument) => $this->argument($argument),
                 default => null,

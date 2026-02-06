@@ -50,7 +50,7 @@ class CommandRun extends BaseCommand
 
     protected function runCommandOnEnvironment(string $environmentId): Command
     {
-        $this->addParam(
+        $this->$this->fields()->add(
             'command',
             fn (ValueResolver $resolver) => $resolver->fromInput(
                 fn ($value) => text(
@@ -64,7 +64,7 @@ class CommandRun extends BaseCommand
         return dynamicSpinner(
             fn () => $this->client->commands()->run(
                 $environmentId,
-                $this->getParam('command'),
+                $this->$this->fields()->get('command'),
             ),
             'Running command...',
         );

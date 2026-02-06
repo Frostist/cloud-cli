@@ -40,7 +40,7 @@ class BucketCreate extends BaseCommand
 
     protected function createBucket()
     {
-        $this->addParam(
+        $this->$this->fields()->add(
             'name',
             fn ($resolver) => $resolver->fromInput(
                 fn (?string $value) => text(
@@ -57,7 +57,7 @@ class BucketCreate extends BaseCommand
             'Fetching regions...',
         );
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'region',
             fn ($resolver) => $resolver
                 ->fromInput(fn (?string $value) => select(
@@ -69,7 +69,7 @@ class BucketCreate extends BaseCommand
                 ->nonInteractively(fn () => $this->getDefaultRegion()),
         );
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'visibility',
             fn ($resolver) => $resolver
                 ->fromInput(fn (?string $value) => select(
@@ -83,9 +83,9 @@ class BucketCreate extends BaseCommand
 
         return spin(
             fn () => $this->client->objectStorageBuckets()->create(
-                $this->getParam('name'),
-                $this->getParam('region'),
-                $this->getParam('visibility'),
+                $this->$this->fields()->get('name'),
+                $this->$this->fields()->get('region'),
+                $this->$this->fields()->get('visibility'),
             ),
             'Creating bucket...',
         );

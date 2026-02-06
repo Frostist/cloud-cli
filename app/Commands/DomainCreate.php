@@ -37,7 +37,7 @@ class DomainCreate extends BaseCommand
 
     protected function createDomain(string $environmentId)
     {
-        $this->addParam(
+        $this->$this->fields()->add(
             'name',
             fn ($resolver) => $resolver->fromInput(fn (?string $value) => text(
                 label: 'Domain name',
@@ -46,7 +46,7 @@ class DomainCreate extends BaseCommand
             )),
         );
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'www_redirect',
             fn ($resolver) => $resolver
                 ->fromInput(fn ($value) => select(
@@ -61,7 +61,7 @@ class DomainCreate extends BaseCommand
                 ->nonInteractively(fn () => 'www_to_root'),
         );
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'wildcard_enabled',
             fn ($resolver) => $resolver
                 ->fromInput(fn ($value) => confirm(
@@ -70,7 +70,7 @@ class DomainCreate extends BaseCommand
                 )),
         );
 
-        $this->addParam(
+        $this->$this->fields()->add(
             'verification_method',
             fn ($resolver) => $resolver
                 ->fromInput(fn ($value) => selectWithContext(
@@ -87,11 +87,11 @@ class DomainCreate extends BaseCommand
         return spin(
             fn () => $this->client->domains()->create(
                 $environmentId,
-                $this->getParam('name'),
+                $this->$this->fields()->get('name'),
                 [
-                    'www_redirect' => $this->getParam('www_redirect'),
-                    'wildcard_enabled' => $this->getParam('wildcard_enabled'),
-                    'verification_method' => $this->getParam('verification_method'),
+                    'www_redirect' => $this->$this->fields()->get('www_redirect'),
+                    'wildcard_enabled' => $this->$this->fields()->get('wildcard_enabled'),
+                    'verification_method' => $this->$this->fields()->get('verification_method'),
                 ],
             ),
             'Creating domain...',

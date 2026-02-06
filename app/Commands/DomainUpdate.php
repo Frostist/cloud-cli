@@ -152,12 +152,12 @@ class DomainUpdate extends BaseCommand
         foreach ($selection as $optionName) {
             $field = $fields[$optionName];
 
-            $this->addParam($field['key'], fn ($resolver) => $resolver->fromInput(
+            $this->$this->fields()->add($field['key'], fn ($resolver) => $resolver->fromInput(
                 fn ($value) => ($field['prompt'])($value ?? $field['current']),
             ));
         }
 
-        $params = $this->getParams();
+        $params = $this->$this->fields()->all();
 
         if (isset($params['is_primary'])) {
             $params['is_primary'] = filter_var($params['is_primary'], FILTER_VALIDATE_BOOLEAN);
