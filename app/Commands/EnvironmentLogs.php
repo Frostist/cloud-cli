@@ -14,7 +14,7 @@ class EnvironmentLogs extends BaseCommand
 {
     protected $signature = 'environment:logs
                             {application? : The application ID or name}
-                            {environment? : The name of the environment}
+                            {environment? : The name or ID of the environment}
                             {--from= : Start time for filtering logs}
                             {--days= : Number of days to fetch logs}
                             {--hours= : Number of hours to fetch logs}
