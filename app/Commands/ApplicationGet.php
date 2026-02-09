@@ -21,12 +21,14 @@ class ApplicationGet extends BaseCommand
         $this->outputJsonIfWanted($application);
 
         dataList([
-            'Name' => $application->name,
             'ID' => $application->id,
+            'Name' => $application->name,
             'Region' => $application->region,
             'Repository' => 'https://github.com/'.$application->repositoryFullName,
-            'Environments' => collect($application->environments)->map(fn ($env) => $env->name.' '.$this->dim($env->id).'')->toArray(),
-            'Organization' => $application->organization->name.' '.$this->dim($application->organization->id).'',
+            'Environments' => collect($application->environments)->map(fn ($env) => [$env->name, $env->id])->toArray(),
+            'Organization' => [
+                [$application->organization->name, $application->organization->id],
+            ],
         ]);
     }
 }
