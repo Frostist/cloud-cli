@@ -5,7 +5,7 @@ namespace App\Client\Requests;
 class CreateBackgroundProcessRequestData implements RequestDataInterface
 {
     /**
-     * @param  array<string, mixed>|null  $config  Worker config: queue, connection, tries, backoff, sleep, rest, timeout, force
+     * @param  array{queue: string, connection: string, tries: int, backoff: int, sleep: int, rest: int, timeout: int, force: bool}  $config
      */
     public function __construct(
         public readonly string $instanceId,
@@ -19,13 +19,11 @@ class CreateBackgroundProcessRequestData implements RequestDataInterface
 
     public function toRequestData(): array
     {
-        $payload = array_filter([
+        return array_filter([
             'type' => $this->type,
             'processes' => $this->processes,
             'command' => $this->command,
             'config' => $this->config,
         ], fn ($value) => $value !== null);
-
-        return $payload;
     }
 }
