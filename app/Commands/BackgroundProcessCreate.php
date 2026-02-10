@@ -105,7 +105,7 @@ class BackgroundProcessCreate extends BaseCommand
                 'timeout',
                 'force',
             ])->mapWithKeys(fn ($key) => [
-                $key => $this->form()->get($key, $this->getWorkerDefult($key)),
+                $key => $this->form()->get('config.'.$key, $this->getWorkerDefult($key)),
             ])->toArray();
         } else {
             $command = $this->form()->get('command');
@@ -128,7 +128,7 @@ class BackgroundProcessCreate extends BaseCommand
     protected function addWorkerParams(): void
     {
         $this->form()->prompt(
-            'connection',
+            'config.connection',
             fn ($resolver) => $resolver
                 ->fromInput(fn (?string $value) => text(
                     label: 'Connection',
@@ -137,10 +137,11 @@ class BackgroundProcessCreate extends BaseCommand
                 ))
                 ->nonInteractively(fn () => $this->getWorkerDefult('connection'))
                 ->shouldPromptOnce(),
+            'connection',
         );
 
         $this->form()->prompt(
-            'queue',
+            'config.queue',
             fn ($resolver) => $resolver
                 ->fromInput(fn (?string $value) => text(
                     label: 'Queue',
@@ -150,10 +151,11 @@ class BackgroundProcessCreate extends BaseCommand
                 ))
                 ->nonInteractively(fn () => $this->getWorkerDefult('queue'))
                 ->shouldPromptOnce(),
+            'queue',
         );
 
         $this->form()->prompt(
-            'tries',
+            'config.tries',
             fn ($resolver) => $resolver
                 ->fromInput(fn (?string $value) => number(
                     label: 'Tries',
@@ -163,10 +165,11 @@ class BackgroundProcessCreate extends BaseCommand
                 ))
                 ->nonInteractively(fn () => $this->getWorkerDefult('tries'))
                 ->shouldPromptOnce(),
+            'tries',
         );
 
         $this->form()->prompt(
-            'backoff',
+            'config.backoff',
             fn ($resolver) => $resolver
                 ->fromInput(fn (?string $value) => number(
                     label: 'Backoff',
@@ -176,10 +179,11 @@ class BackgroundProcessCreate extends BaseCommand
                 ))
                 ->nonInteractively(fn () => $this->getWorkerDefult('backoff'))
                 ->shouldPromptOnce(),
+            'backoff',
         );
 
         $this->form()->prompt(
-            'sleep',
+            'config.sleep',
             fn ($resolver) => $resolver
                 ->fromInput(fn (?string $value) => number(
                     label: 'Sleep',
@@ -189,10 +193,11 @@ class BackgroundProcessCreate extends BaseCommand
                 ))
                 ->nonInteractively(fn () => $this->getWorkerDefult('sleep'))
                 ->shouldPromptOnce(),
+            'sleep',
         );
 
         $this->form()->prompt(
-            'rest',
+            'config.rest',
             fn ($resolver) => $resolver
                 ->fromInput(fn (?string $value) => number(
                     label: 'Rest',
@@ -202,10 +207,11 @@ class BackgroundProcessCreate extends BaseCommand
                 ))
                 ->nonInteractively(fn () => $this->getWorkerDefult('rest'))
                 ->shouldPromptOnce(),
+            'rest',
         );
 
         $this->form()->prompt(
-            'timeout',
+            'config.timeout',
             fn ($resolver) => $resolver
                 ->fromInput(fn (?string $value) => number(
                     label: 'Timeout',
@@ -215,10 +221,11 @@ class BackgroundProcessCreate extends BaseCommand
                 ))
                 ->nonInteractively(fn () => $this->getWorkerDefult('timeout'))
                 ->shouldPromptOnce(),
+            'timeout',
         );
 
         $this->form()->prompt(
-            'force',
+            'config.force',
             fn ($resolver) => $resolver
                 ->fromInput(fn (?string $value) => confirm(
                     label: 'Run in maintenance mode?',
@@ -227,6 +234,7 @@ class BackgroundProcessCreate extends BaseCommand
                 ))
                 ->nonInteractively(fn () => $this->getWorkerDefult('force'))
                 ->shouldPromptOnce(),
+            'force',
         );
     }
 
@@ -234,6 +242,12 @@ class BackgroundProcessCreate extends BaseCommand
     {
         if (! $this->isInteractive()) {
             return false;
+        }
+
+        foreach ($this->errors->all() as $field => $message) {
+            if (str_contains($field, 'config.')) {
+                return true;
+            }
         }
 
         dataList([

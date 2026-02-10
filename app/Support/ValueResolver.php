@@ -15,6 +15,8 @@ class ValueResolver
 
     protected $shouldPromptOnce = false;
 
+    protected $hasPromptedOnce = false;
+
     protected ?string $label = null;
 
     protected ?string $previousValue = null;
@@ -88,8 +90,8 @@ class ValueResolver
     {
         $this->errors ??= new ValidationErrors;
 
-        if ($this->shouldPromptOnce) {
-            $this->shouldPromptOnce = false;
+        if ($this->shouldPromptOnce && ! $this->hasPromptedOnce) {
+            $this->hasPromptedOnce = true;
 
             return ($this->fromInputCallback)($this->value);
         }
