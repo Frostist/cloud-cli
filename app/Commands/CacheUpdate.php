@@ -4,7 +4,6 @@ namespace App\Commands;
 
 use App\Client\Requests\UpdateCacheRequestData;
 use App\Dto\Cache;
-use App\Support\UpdateFields;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\error;
@@ -36,24 +35,17 @@ class CacheUpdate extends BaseCommand
 
         $cache = $this->resolvers()->cache()->from($this->argument('cache'));
 
-        $fields = $this->getFieldDefinitions($cache);
+        $this->defineFields($cache);
 
-        $data = [];
-
-        foreach ($fields as $optionName => $field) {
-            if ($this->option($optionName)) {
-                $value = $this->option($optionName);
-                $data[$field['key']] = $this->coerceValue($field['key'], $value);
-
-                $this->reportChange(
-                    $field['label'],
-                    (string) $field['current'],
-                    (string) $value,
-                );
-            }
+        foreach ($this->form()->filled() as $key => $value) {
+            $this->reportChange(
+                $value->label(),
+                $value->previousValue(),
+                $value->value(),
+            );
         }
 
-        $updatedCache = $this->resolveUpdatedCache($cache, $fields, $data);
+        $updatedCache = $this->resolveUpdatedCache($cache);
 
         $this->outputJsonIfWanted($updatedCache);
 
@@ -62,20 +54,22 @@ class CacheUpdate extends BaseCommand
         outro("Cache updated: {$updatedCache->name}");
     }
 
-    protected function resolveUpdatedCache(Cache $cache, array $fields, array $data): Cache
+    protected function resolveUpdatedCache(Cache $cache): Cache
     {
         if (! $this->isInteractive()) {
-            if (empty($data)) {
+            if (! $this->form()->hasAnyValues()) {
                 $this->outputErrorOrThrow('No fields to update. Provide at least one option.');
 
                 exit(self::FAILURE);
             }
 
-            return $this->updateCache($cache, $data);
+            return $this->updateCache($cache);
         }
 
-        if (empty($data)) {
-            return $this->collectDataAndUpdate($fields, $cache);
+        if (! $this->form()->hasAnyValues()) {
+            return $this->loopUntilValid(
+                fn () => $this->collectDataAndUpdate($cache),
+            );
         }
 
         if (! $this->shouldRunUpdateFromOptions()) {
@@ -84,18 +78,21 @@ class CacheUpdate extends BaseCommand
             exit(self::FAILURE);
         }
 
-        return $this->updateCache($cache, $data);
+        return $this->updateCache($cache);
     }
 
-    protected function updateCache(Cache $cache, array $data): Cache
+    protected function updateCache(Cache $cache): Cache
     {
+        $autoUpgradeEnabled = $this->form()->get('auto_upgrade_enabled');
+        $isPublic = $this->form()->get('is_public');
+
         spin(
             fn () => $this->client->caches()->update(new UpdateCacheRequestData(
                 cacheId: $cache->id,
-                name: isset($data['name']) ? (string) $data['name'] : null,
-                size: isset($data['size']) ? (string) $data['size'] : null,
-                autoUpgradeEnabled: array_key_exists('auto_upgrade_enabled', $data) ? $this->coerceValue('auto_upgrade_enabled', $data['auto_upgrade_enabled']) : null,
-                isPublic: array_key_exists('is_public', $data) ? $this->coerceValue('is_public', $data['is_public']) : null,
+                name: $this->form()->get('name'),
+                size: $this->form()->get('size'),
+                autoUpgradeEnabled: $autoUpgradeEnabled !== null ? filter_var($autoUpgradeEnabled, FILTER_VALIDATE_BOOLEAN) : null,
+                isPublic: $isPublic !== null ? filter_var($isPublic, FILTER_VALIDATE_BOOLEAN) : null,
             )),
             'Updating cache...',
         );
@@ -112,48 +109,69 @@ class CacheUpdate extends BaseCommand
         return confirm('Update the cache?');
     }
 
-    protected function getFieldDefinitions(Cache $cache): array
+    protected function defineFields(Cache $cache): void
     {
-        $fields = new UpdateFields;
+        $this->form()->define(
+            'name',
+            fn ($resolver) => $resolver->fromInput(
+                fn ($value) => text(
+                    label: 'Name',
+                    required: true,
+                    default: $value ?? $cache->name,
+                    validate: fn ($v) => strlen($v) < 3 ? 'Name must be at least 3 characters' : null,
+                ),
+            ),
+        )->setPreviousValue($cache->name);
 
-        $fields->add('name', fn ($value) => text(
-            label: 'Name',
-            default: $value ?? $cache->name,
-            required: true,
-            validate: fn ($v) => strlen($v) < 3 ? 'Name must be at least 3 characters' : null,
-        ))->currentValue($cache->name)->dataKey('name');
-        $fields->add('size', fn ($value) => select(
-            label: 'Size',
-            options: [
-                '250mb' => '250 MB',
-                '1gb' => '1 GB',
-                '2.5gb' => '2.5 GB',
-                '5gb' => '5 GB',
-                '12gb' => '12 GB',
-                '50gb' => '50 GB',
-                '100gb' => '100 GB',
-                '500gb' => '500 GB',
-            ],
-            default: $value ?? $cache->size,
-        ))->currentValue($cache->size)->dataKey('size');
-        $fields->add('auto-upgrade-enabled', fn ($value) => confirm(
-            label: 'Auto upgrade enabled?',
-            default: (bool) ($value ?? $cache->autoUpgradeEnabled),
-        ))->currentValue($cache->autoUpgradeEnabled)->dataKey('auto_upgrade_enabled');
-        $fields->add('is-public', fn ($value) => confirm(
-            label: 'Public?',
-            default: (bool) ($value ?? $cache->isPublic),
-        ))->currentValue($cache->isPublic)->dataKey('is_public');
+        $this->form()->define(
+            'size',
+            fn ($resolver) => $resolver->fromInput(
+                fn ($value) => select(
+                    label: 'Size',
+                    options: [
+                        '250mb' => '250 MB',
+                        '1gb' => '1 GB',
+                        '2.5gb' => '2.5 GB',
+                        '5gb' => '5 GB',
+                        '12gb' => '12 GB',
+                        '50gb' => '50 GB',
+                        '100gb' => '100 GB',
+                        '500gb' => '500 GB',
+                    ],
+                    default: $value ?? $cache->size,
+                ),
+            ),
+        )->setPreviousValue($cache->size);
 
-        return $fields->get();
+        $this->form()->define(
+            'auto_upgrade_enabled',
+            fn ($resolver) => $resolver->fromInput(
+                fn ($value) => confirm(
+                    label: 'Auto upgrade enabled?',
+                    default: (bool) ($value ?? $cache->autoUpgradeEnabled),
+                ),
+            ),
+            'auto-upgrade-enabled',
+        )->setPreviousValue($cache->autoUpgradeEnabled ? 'true' : 'false');
+
+        $this->form()->define(
+            'is_public',
+            fn ($resolver) => $resolver->fromInput(
+                fn ($value) => confirm(
+                    label: 'Public?',
+                    default: (bool) ($value ?? $cache->isPublic),
+                ),
+            ),
+            'is-public',
+        )->setPreviousValue($cache->isPublic ? 'true' : 'false');
     }
 
-    protected function collectDataAndUpdate(array $fields, Cache $cache): Cache
+    protected function collectDataAndUpdate(Cache $cache): Cache
     {
         $selection = multiselect(
             label: 'What do you want to update?',
-            options: collect($fields)->mapWithKeys(fn ($field, $key) => [
-                $key => $field['label'],
+            options: collect($this->form()->defined())->mapWithKeys(fn ($field, $key) => [
+                $field->key => $field->label(),
             ])->toArray(),
         );
 
@@ -164,22 +182,9 @@ class CacheUpdate extends BaseCommand
         }
 
         foreach ($selection as $optionName) {
-            $field = $fields[$optionName];
-
-            $this->form()->prompt($field['key'], fn ($resolver) => $resolver->fromInput(
-                fn ($value) => ($field['prompt'])($value ?? $field['current']),
-            ));
+            $this->form()->prompt($optionName);
         }
 
-        return $this->updateCache($cache, $this->form()->all());
-    }
-
-    protected function coerceValue(string $key, mixed $value): mixed
-    {
-        if ($key === 'auto_upgrade_enabled' || $key === 'is_public') {
-            return filter_var($value, FILTER_VALIDATE_BOOLEAN);
-        }
-
-        return $value;
+        return $this->updateCache($cache);
     }
 }

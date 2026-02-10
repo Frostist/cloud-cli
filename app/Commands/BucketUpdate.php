@@ -3,9 +3,16 @@
 namespace App\Commands;
 
 use App\Client\Requests\UpdateObjectStorageBucketRequestData;
+use App\Dto\ObjectStorageBucket;
 
+use function Laravel\Prompts\confirm;
+use function Laravel\Prompts\error;
 use function Laravel\Prompts\intro;
+use function Laravel\Prompts\multiselect;
+use function Laravel\Prompts\outro;
+use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
+use function Laravel\Prompts\text;
 
 class BucketUpdate extends BaseCommand
 {
@@ -13,6 +20,7 @@ class BucketUpdate extends BaseCommand
                             {bucket? : The bucket ID or name}
                             {--name= : Bucket name}
                             {--visibility= : Visibility (private or public)}
+                            {--force : Force update without confirmation}
                             {--json : Output as JSON}';
 
     protected $description = 'Update an object storage bucket';
@@ -25,26 +33,123 @@ class BucketUpdate extends BaseCommand
 
         $bucket = $this->resolvers()->objectStorageBucket()->from($this->argument('bucket'));
 
-        $name = $this->option('name') ? (string) $this->option('name') : null;
-        $visibility = $this->option('visibility') ? (string) $this->option('visibility') : null;
+        $this->defineFields($bucket);
 
-        if ($name === null && $visibility === null) {
-            $this->outputErrorOrThrow('No fields to update. Provide at least one option (--name or --visibility).');
+        foreach ($this->form()->filled() as $key => $value) {
+            $this->reportChange(
+                $value->label(),
+                $value->previousValue(),
+                $value->value(),
+            );
+        }
+
+        $updatedBucket = $this->resolveUpdatedBucket($bucket);
+
+        $this->outputJsonIfWanted($updatedBucket);
+
+        success('Bucket updated');
+
+        outro("Bucket updated: {$updatedBucket->name}");
+    }
+
+    protected function resolveUpdatedBucket(ObjectStorageBucket $bucket): ObjectStorageBucket
+    {
+        if (! $this->isInteractive()) {
+            if (! $this->form()->hasAnyValues()) {
+                $this->outputErrorOrThrow('No fields to update. Provide at least one option (--name or --visibility).');
+
+                exit(self::FAILURE);
+            }
+
+            return $this->updateBucket($bucket);
+        }
+
+        if (! $this->form()->hasAnyValues()) {
+            return $this->loopUntilValid(
+                fn () => $this->collectDataAndUpdate($bucket),
+            );
+        }
+
+        if (! $this->shouldRunUpdateFromOptions()) {
+            error('Update cancelled');
 
             exit(self::FAILURE);
         }
 
-        $updated = spin(
+        return $this->updateBucket($bucket);
+    }
+
+    protected function updateBucket(ObjectStorageBucket $bucket): ObjectStorageBucket
+    {
+        spin(
             fn () => $this->client->objectStorageBuckets()->update(new UpdateObjectStorageBucketRequestData(
                 bucketId: $bucket->id,
-                name: $name,
-                visibility: $visibility,
+                name: $this->form()->get('name'),
+                visibility: $this->form()->get('visibility'),
             )),
             'Updating bucket...',
         );
 
-        $this->outputJsonIfWanted($updated);
+        return $this->client->objectStorageBuckets()->get($bucket->id);
+    }
 
-        success('Bucket updated');
+    protected function shouldRunUpdateFromOptions(): bool
+    {
+        if ($this->option('force')) {
+            return true;
+        }
+
+        return confirm('Update the bucket?');
+    }
+
+    protected function defineFields(ObjectStorageBucket $bucket): void
+    {
+        $this->form()->define(
+            'name',
+            fn ($resolver) => $resolver->fromInput(
+                fn ($value) => text(
+                    label: 'Name',
+                    required: true,
+                    default: $value ?? $bucket->name,
+                ),
+            ),
+        )->setPreviousValue($bucket->name);
+
+        $this->form()->define(
+            'visibility',
+            fn ($resolver) => $resolver->fromInput(
+                fn ($value) => select(
+                    label: 'Visibility',
+                    options: [
+                        'private' => 'Private',
+                        'public' => 'Public',
+                    ],
+                    default: $value ?? $bucket->visibility->value,
+                    required: true,
+                ),
+            ),
+        )->setPreviousValue($bucket->visibility->value);
+    }
+
+    protected function collectDataAndUpdate(ObjectStorageBucket $bucket): ObjectStorageBucket
+    {
+        $selection = multiselect(
+            label: 'What do you want to update?',
+            options: collect($this->form()->defined())->mapWithKeys(fn ($field, $key) => [
+                $field->key => $field->label(),
+            ])->toArray(),
+        );
+
+        if (empty($selection)) {
+            $this->outputErrorOrThrow('No fields to update. Select at least one option.');
+
+            exit(self::FAILURE);
+        }
+
+        foreach ($selection as $optionName) {
+            $this->form()->prompt($optionName);
+        }
+
+        return $this->updateBucket($bucket);
     }
 }

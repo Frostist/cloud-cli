@@ -4,7 +4,6 @@ namespace App\Commands;
 
 use App\Client\Requests\UpdateDomainRequestData;
 use App\Dto\Domain;
-use App\Support\UpdateFields;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\error;
@@ -33,38 +32,17 @@ class DomainUpdate extends BaseCommand
 
         $domain = $this->resolvers()->domain()->from($this->argument('domain'));
 
-        $fields = $this->getFieldDefinitions($domain);
+        $this->defineFields($domain);
 
-        $data = [];
-
-        foreach ($fields as $optionName => $field) {
-            if ($this->option($optionName)) {
-                $rawValue = $this->option($optionName);
-                $value = match ($field['key']) {
-                    'is_primary' => filter_var($rawValue, FILTER_VALIDATE_BOOLEAN),
-                    'verification_method' => in_array($rawValue, ['pre_verification', 'real_time'], true) ? $rawValue : null,
-                    default => $rawValue,
-                };
-
-                if ($field['key'] === 'verification_method' && $value === null) {
-                    $this->outputErrorOrThrow("Invalid verification method. Use 'pre_verification' or 'real_time'.");
-
-                    exit(self::FAILURE);
-                }
-
-                if ($value !== null) {
-                    $data[$field['key']] = $value;
-
-                    $this->reportChange(
-                        $field['label'],
-                        (string) $field['current'],
-                        (string) $rawValue,
-                    );
-                }
-            }
+        foreach ($this->form()->filled() as $key => $value) {
+            $this->reportChange(
+                $value->label(),
+                $value->previousValue(),
+                $value->value(),
+            );
         }
 
-        $updatedDomain = $this->resolveUpdatedDomain($domain, $fields, $data);
+        $updatedDomain = $this->resolveUpdatedDomain($domain);
 
         $this->outputJsonIfWanted($updatedDomain);
 
@@ -73,21 +51,21 @@ class DomainUpdate extends BaseCommand
         outro($updatedDomain->name);
     }
 
-    protected function resolveUpdatedDomain(Domain $domain, array $fields, array $data): Domain
+    protected function resolveUpdatedDomain(Domain $domain): Domain
     {
         if (! $this->isInteractive()) {
-            if (empty($data)) {
+            if (! $this->form()->hasAnyValues()) {
                 $this->outputErrorOrThrow('No fields to update. Provide at least one option.');
 
                 exit(self::FAILURE);
             }
 
-            return $this->updateDomain($domain, $data);
+            return $this->updateDomain($domain);
         }
 
-        if (empty($data)) {
+        if (! $this->form()->hasAnyValues()) {
             return $this->loopUntilValid(
-                fn () => $this->collectDataAndUpdate($fields, $domain),
+                fn () => $this->collectDataAndUpdate($domain),
             );
         }
 
@@ -97,16 +75,26 @@ class DomainUpdate extends BaseCommand
             exit(self::FAILURE);
         }
 
-        return $this->updateDomain($domain, $data);
+        return $this->updateDomain($domain);
     }
 
-    protected function updateDomain(Domain $domain, array $data): Domain
+    protected function updateDomain(Domain $domain): Domain
     {
+        $verificationMethod = $this->form()->get('verification_method');
+
+        if ($verificationMethod !== null && ! in_array($verificationMethod, ['pre_verification', 'real_time'], true)) {
+            $this->outputErrorOrThrow("Invalid verification method. Use 'pre_verification' or 'real_time'.");
+
+            exit(self::FAILURE);
+        }
+
+        $isPrimary = $this->form()->get('is_primary');
+
         spin(
             fn () => $this->client->domains()->update(new UpdateDomainRequestData(
                 domainId: $domain->id,
-                verificationMethod: $data['verification_method'] ?? null,
-                isPrimary: isset($data['is_primary']) ? filter_var($data['is_primary'], FILTER_VALIDATE_BOOLEAN) : null,
+                verificationMethod: $verificationMethod,
+                isPrimary: $isPrimary !== null ? filter_var($isPrimary, FILTER_VALIDATE_BOOLEAN) : null,
             )),
             'Updating domain...',
         );
@@ -123,28 +111,31 @@ class DomainUpdate extends BaseCommand
         return confirm('Update the domain?');
     }
 
-    protected function getFieldDefinitions(Domain $domain): array
+    protected function defineFields(Domain $domain): void
     {
-        $fields = new UpdateFields;
+        $this->form()->define(
+            'verification_method',
+            fn ($resolver) => $resolver->fromInput(
+                fn ($value) => $this->getNewVerificationMethod($value),
+            ),
+            'verification-method',
+        )->setPreviousValue('');
 
-        $fields->add('verification-method', fn ($value) => $this->getNewVerificationMethod($value))
-            ->currentValue('')
-            ->dataKey('verification_method')
-            ->label('Verification method');
-        $fields->add('is-primary', fn ($value) => $this->getNewIsPrimary($value))
-            ->currentValue($domain->isPrimary() ? 'true' : 'false')
-            ->dataKey('is_primary')
-            ->label('Primary');
-
-        return $fields->get();
+        $this->form()->define(
+            'is_primary',
+            fn ($resolver) => $resolver->fromInput(
+                fn ($value) => $this->getNewIsPrimary($value ?? $domain->isPrimary()),
+            ),
+            'is-primary',
+        )->setPreviousValue($domain->isPrimary() ? 'true' : 'false');
     }
 
-    protected function collectDataAndUpdate(array $fields, Domain $domain): Domain
+    protected function collectDataAndUpdate(Domain $domain): Domain
     {
         $selection = multiselect(
             label: 'What do you want to update?',
-            options: collect($fields)->mapWithKeys(fn ($field, $key) => [
-                $key => $field['label'],
+            options: collect($this->form()->defined())->mapWithKeys(fn ($field, $key) => [
+                $field->key => $field->label(),
             ])->toArray(),
         );
 
@@ -155,20 +146,10 @@ class DomainUpdate extends BaseCommand
         }
 
         foreach ($selection as $optionName) {
-            $field = $fields[$optionName];
-
-            $this->form()->prompt($field['key'], fn ($resolver) => $resolver->fromInput(
-                fn ($value) => ($field['prompt'])($value ?? $field['current']),
-            ));
+            $this->form()->prompt($optionName);
         }
 
-        $params = $this->form()->all();
-
-        if (isset($params['is_primary'])) {
-            $params['is_primary'] = filter_var($params['is_primary'], FILTER_VALIDATE_BOOLEAN);
-        }
-
-        return $this->updateDomain($domain, $params);
+        return $this->updateDomain($domain);
     }
 
     protected function getNewVerificationMethod(?string $current): string

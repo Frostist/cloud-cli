@@ -5,7 +5,6 @@ namespace App\Commands;
 use App\Client\Requests\UpdateDatabaseClusterRequestData;
 use App\Dto\DatabaseCluster;
 use App\Dto\DatabaseType;
-use App\Support\UpdateFields;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\error;
@@ -52,24 +51,17 @@ class DatabaseClusterUpdate extends BaseCommand
 
         $type = collect($types)->firstWhere('type', $database->type);
 
-        $fields = $this->getFieldDefinitions($database, $type);
+        $this->defineFields($database, $type);
 
-        $data = [];
-
-        foreach ($fields as $optionName => $field) {
-            if ($this->option($optionName)) {
-                $value = $this->option($optionName);
-                $data[$field['key']] = $this->coerceConfigValue($field['key'], $value, $type);
-
-                $this->reportChange(
-                    $field['label'],
-                    (string) $field['current'],
-                    (string) $value,
-                );
-            }
+        foreach ($this->form()->filled() as $key => $value) {
+            $this->reportChange(
+                $value->label(),
+                $value->previousValue(),
+                $value->value(),
+            );
         }
 
-        $updatedDatabase = $this->resolveUpdatedDatabase($database, $type, $fields, $data);
+        $updatedDatabase = $this->resolveUpdatedDatabase($database, $type);
 
         $this->outputJsonIfWanted($updatedDatabase);
 
@@ -78,21 +70,21 @@ class DatabaseClusterUpdate extends BaseCommand
         outro("Database cluster updated: {$updatedDatabase->name}");
     }
 
-    protected function resolveUpdatedDatabase(DatabaseCluster $database, DatabaseType $type, array $fields, array $data): DatabaseCluster
+    protected function resolveUpdatedDatabase(DatabaseCluster $database, DatabaseType $type): DatabaseCluster
     {
         if (! $this->isInteractive()) {
-            if (empty($data)) {
+            if (! $this->form()->hasAnyValues()) {
                 $this->outputErrorOrThrow('No fields to update. Provide at least one option.');
 
                 exit(self::FAILURE);
             }
 
-            return $this->updateDatabase($database, $data);
+            return $this->updateDatabase($database, $type);
         }
 
-        if (empty($data)) {
+        if (! $this->form()->hasAnyValues()) {
             return $this->loopUntilValid(
-                fn () => $this->collectDataAndUpdate($fields, $database, $type),
+                fn () => $this->collectDataAndUpdate($database, $type),
             );
         }
 
@@ -102,12 +94,22 @@ class DatabaseClusterUpdate extends BaseCommand
             exit(self::FAILURE);
         }
 
-        return $this->updateDatabase($database, $data);
+        return $this->updateDatabase($database, $type);
     }
 
-    protected function updateDatabase(DatabaseCluster $database, array $configUpdates): DatabaseCluster
+    protected function updateDatabase(DatabaseCluster $database, DatabaseType $type): DatabaseCluster
     {
-        $config = array_merge($database->config, $configUpdates);
+        $config = $database->config;
+
+        foreach ($type->configSchema as $schemaField) {
+            $schema = is_array($schemaField) ? $schemaField : $schemaField->toArray();
+            $name = $schema['name'];
+            $value = $this->form()->get($name);
+
+            if ($value !== null) {
+                $config[$name] = $this->coerceConfigValue($name, $value, $type);
+            }
+        }
 
         spin(
             fn () => $this->client->databaseClusters()->update(new UpdateDatabaseClusterRequestData(
@@ -129,10 +131,8 @@ class DatabaseClusterUpdate extends BaseCommand
         return confirm('Update the database cluster?');
     }
 
-    protected function getFieldDefinitions(DatabaseCluster $database, DatabaseType $type): array
+    protected function defineFields(DatabaseCluster $database, DatabaseType $type): void
     {
-        $fields = new UpdateFields;
-
         $config = $database->config;
 
         foreach ($type->configSchema as $schemaField) {
@@ -143,21 +143,22 @@ class DatabaseClusterUpdate extends BaseCommand
             $promptSchema = $schema;
             $promptCurrent = $current;
 
-            $fields->add($optionName, fn ($value) => $this->promptForConfigValue($promptSchema, $value ?? $promptCurrent))
-                ->currentValue($current)
-                ->dataKey($name)
-                ->label(str_replace('_', ' ', ucfirst($name)));
+            $this->form()->define(
+                $name,
+                fn ($resolver) => $resolver->fromInput(
+                    fn ($value) => $this->promptForConfigValue($promptSchema, $value ?? $promptCurrent),
+                ),
+                $optionName,
+            )->setPreviousValue($current !== null ? (string) $current : '');
         }
-
-        return $fields->get();
     }
 
-    protected function collectDataAndUpdate(array $fields, DatabaseCluster $database, DatabaseType $type): DatabaseCluster
+    protected function collectDataAndUpdate(DatabaseCluster $database, DatabaseType $type): DatabaseCluster
     {
         $selection = multiselect(
             label: 'What do you want to update?',
-            options: collect($fields)->mapWithKeys(fn ($field, $key) => [
-                $key => $field['label'],
+            options: collect($this->form()->defined())->mapWithKeys(fn ($field, $key) => [
+                $field->key => $field->label(),
             ])->toArray(),
         );
 
@@ -167,15 +168,11 @@ class DatabaseClusterUpdate extends BaseCommand
             exit(self::FAILURE);
         }
 
-        $data = [];
-
         foreach ($selection as $optionName) {
-            $field = $fields[$optionName];
-            $newValue = ($field['prompt'])($field['current']);
-            $data[$field['key']] = $this->coerceConfigValue($field['key'], $newValue, $type);
+            $this->form()->prompt($optionName);
         }
 
-        return $this->updateDatabase($database, $data);
+        return $this->updateDatabase($database, $type);
     }
 
     protected function promptForConfigValue(array $schema, mixed $current): mixed
