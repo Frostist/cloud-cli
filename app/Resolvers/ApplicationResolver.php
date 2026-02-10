@@ -49,9 +49,18 @@ class ApplicationResolver extends Resolver
     public function fromRepo(): ?Application
     {
         $repository = app(Git::class)->remoteRepo();
+
+        if (! $repository) {
+            return null;
+        }
+
         $apps = $this->fetchAll();
 
         $repoApps = $apps->where('repositoryFullName', $repository);
+
+        if ($repoApps->isEmpty()) {
+            return null;
+        }
 
         if ($repoApps->hasSole()) {
             return $repoApps->first();
