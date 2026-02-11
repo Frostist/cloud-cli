@@ -3,6 +3,7 @@
 namespace App\Commands;
 
 use App\Client\Requests\CreateBucketKeyRequestData;
+use App\Dto\ObjectStorageBucket;
 
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\outro;
@@ -28,30 +29,47 @@ class BucketKeyCreate extends BaseCommand
 
         $bucket = $this->resolvers()->objectStorageBucket()->from($this->argument('bucket'));
 
-        $name = $this->option('name') ?? text(
-            label: 'Key name',
-            required: true,
-        );
-
-        $permission = $this->option('permission') ?? select(
-            label: 'Permission',
-            options: ['read_only' => 'Read only', 'read_write' => 'Read and write'],
-            default: 'read_write',
-        );
-
-        $key = spin(
-            fn () => $this->client->bucketKeys()->create(new CreateBucketKeyRequestData(
-                filesystemId: $bucket->id,
-                name: $name,
-                permission: $permission,
-            )),
-            'Creating key...',
-        );
+        $key = $this->loopUntilValid(fn () => $this->createBucketKey($bucket));
 
         $this->outputJsonIfWanted($key);
 
         success('Bucket key created');
 
         outro("Key created: {$key->name}");
+    }
+
+    protected function createBucketKey(ObjectStorageBucket $bucket)
+    {
+        $this->form()->prompt(
+            'name',
+            fn ($resolver) => $resolver->fromInput(
+                fn (?string $value) => text(
+                    label: 'Key name',
+                    default: $value ?? '',
+                    required: true,
+                ),
+            ),
+        );
+
+        $this->form()->prompt(
+            'permission',
+            fn ($resolver) => $resolver
+                ->fromInput(fn (?string $value) => select(
+                    label: 'Permission',
+                    options: ['read_only' => 'Read only', 'read_write' => 'Read and write'],
+                    default: $value ?? 'read_write',
+                    required: true,
+                ))
+                ->nonInteractively(fn () => 'read_write'),
+        );
+
+        return spin(
+            fn () => $this->client->bucketKeys()->create(new CreateBucketKeyRequestData(
+                filesystemId: $bucket->id,
+                name: $this->form()->get('name'),
+                permission: $this->form()->get('permission'),
+            )),
+            'Creating key...',
+        );
     }
 }
