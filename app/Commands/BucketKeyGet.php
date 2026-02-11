@@ -24,7 +24,7 @@ class BucketKeyGet extends BaseCommand
         $key = $this->resolvers()->bucketKey()->from($bucket, $this->argument('key'));
 
         $key = spin(
-            fn () => $this->client->bucketKeys()->get($bucket->id, $key->id),
+            fn () => $this->client->bucketKeys()->get($key->id),
             'Fetching key...',
         );
 

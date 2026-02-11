@@ -4,13 +4,9 @@ namespace App\Commands;
 
 use App\Client\Requests\UpdateBucketKeyRequestData;
 use App\Dto\BucketKey;
-use App\Dto\ObjectStorageBucket;
-use App\Exceptions\CommandExitException;
 
 use function Laravel\Prompts\confirm;
-use function Laravel\Prompts\error;
 use function Laravel\Prompts\intro;
-use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\outro;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\text;
@@ -21,7 +17,6 @@ class BucketKeyUpdate extends BaseCommand
                             {bucket? : The bucket ID or name}
                             {key? : The key ID or name}
                             {--name= : Key name}
-                            {--permission= : Permission (read_only or read_write)}
                             {--force : Force update without confirmation}
                             {--json : Output as JSON}';
 
@@ -46,7 +41,10 @@ class BucketKeyUpdate extends BaseCommand
             );
         }
 
-        $updatedKey = $this->resolveUpdatedKey($bucket, $key);
+        $updatedKey = $this->runUpdate(
+            fn () => $this->updateKey($key),
+            fn () => $this->collectDataAndUpdate($key),
+        );
 
         $this->outputJsonIfWanted($updatedKey);
 
@@ -55,44 +53,19 @@ class BucketKeyUpdate extends BaseCommand
         outro("Bucket key updated: {$updatedKey->name}");
     }
 
-    protected function resolveUpdatedKey(ObjectStorageBucket $bucket, BucketKey $key): BucketKey
-    {
-        if (! $this->isInteractive()) {
-            if (! $this->form()->hasAnyValues()) {
-                $this->outputErrorOrThrow('No fields to update. Provide --name or --permission.');
-
-                throw new CommandExitException(self::FAILURE);
-            }
-
-            return $this->updateKey($bucket, $key);
-        }
-
-        if (! $this->form()->hasAnyValues()) {
-            return $this->loopUntilValid(
-                fn () => $this->collectDataAndUpdate($bucket, $key),
-            );
-        }
-
-        if (! $this->shouldRunUpdateFromOptions()) {
-            error('Update cancelled');
-
-            throw new CommandExitException(self::FAILURE);
-        }
-
-        return $this->updateKey($bucket, $key);
-    }
-
-    protected function updateKey(ObjectStorageBucket $bucket, BucketKey $key): BucketKey
+    protected function updateKey(BucketKey $key): BucketKey
     {
         spin(
-            fn () => $this->client->bucketKeys()->update(new UpdateBucketKeyRequestData(
-                filesystemKey: $key->id,
-                name: $this->form()->get('name'),
-            )),
+            fn () => $this->client->bucketKeys()->update(
+                new UpdateBucketKeyRequestData(
+                    filesystemKey: $key->id,
+                    name: $this->form()->get('name'),
+                ),
+            ),
             'Updating key...',
         );
 
-        return $this->client->bucketKeys()->get($bucket->id, $key->id);
+        return $this->client->bucketKeys()->get($key->id);
     }
 
     protected function shouldRunUpdateFromOptions(): bool
@@ -118,25 +91,10 @@ class BucketKeyUpdate extends BaseCommand
         )->setPreviousValue($key->name);
     }
 
-    protected function collectDataAndUpdate(ObjectStorageBucket $bucket, BucketKey $key): BucketKey
+    protected function collectDataAndUpdate(BucketKey $key): BucketKey
     {
-        $selection = multiselect(
-            label: 'What do you want to update?',
-            options: collect($this->form()->defined())->mapWithKeys(fn ($field, $k) => [
-                $field->key => $field->label(),
-            ])->toArray(),
-        );
+        $this->form()->prompt('name');
 
-        if (empty($selection)) {
-            $this->outputErrorOrThrow('No fields to update. Select at least one option.');
-
-            throw new CommandExitException(self::FAILURE);
-        }
-
-        foreach ($selection as $optionName) {
-            $this->form()->prompt($optionName);
-        }
-
-        return $this->updateKey($bucket, $key);
+        return $this->updateKey($key);
     }
 }

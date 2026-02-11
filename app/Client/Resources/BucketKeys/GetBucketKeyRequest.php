@@ -15,7 +15,6 @@ class GetBucketKeyRequest extends Request
     protected Method $method = Method::GET;
 
     public function __construct(
-        protected string $bucketId,
         protected string $keyId,
     ) {
         //
@@ -23,7 +22,7 @@ class GetBucketKeyRequest extends Request
 
     public function resolveEndpoint(): string
     {
-        return "/buckets/{$this->bucketId}/keys/{$this->keyId}";
+        return "/bucket-keys/{$this->keyId}";
     }
 
     public function createDtoFromResponse(Response $response): BucketKey

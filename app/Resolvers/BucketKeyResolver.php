@@ -4,7 +4,7 @@ namespace App\Resolvers;
 
 use App\Dto\BucketKey;
 use App\Dto\ObjectStorageBucket;
-use Illuminate\Support\Collection;
+use Illuminate\Support\LazyCollection;
 
 use function Laravel\Prompts\spin;
 
@@ -56,7 +56,7 @@ class BucketKeyResolver extends Resolver
         return $keys->firstWhere('id', $selected);
     }
 
-    protected function fetchAll(ObjectStorageBucket $bucket): Collection
+    protected function fetchAll(ObjectStorageBucket $bucket): LazyCollection
     {
         return spin(
             fn () => $this->client->bucketKeys()->list($bucket->id)->collect(),
@@ -66,6 +66,6 @@ class BucketKeyResolver extends Resolver
 
     protected function idPrefix(): string
     {
-        return 'key-';
+        return 'flsk-';
     }
 }

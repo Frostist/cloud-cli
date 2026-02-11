@@ -21,10 +21,9 @@ class BucketKeysResource extends Resource
         return $this->paginate($request);
     }
 
-    public function get(string $bucketId, string $keyId): BucketKey
+    public function get(string $keyId): BucketKey
     {
         $request = new GetBucketKeyRequest(
-            bucketId: $bucketId,
             keyId: $keyId,
         );
         $response = $this->send($request);
