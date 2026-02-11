@@ -104,12 +104,19 @@ class Form
         return $this->fields[$key]['resolver']->value();
     }
 
-    // public function all(): array
-    // {
-    //     return collect($this->fields)->mapWithKeys(fn(array $field) => [
-    //         $field->key() => $field->value(),
-    //     ])->toArray();
-    // }
+    public function integer(string $key, mixed $default = null): ?int
+    {
+        $result = $this->get($key, $default);
+
+        return ($result === null) ? null : (int) $result;
+    }
+
+    public function boolean(string $key, mixed $default = null): ?bool
+    {
+        $result = $this->get($key, $default);
+
+        return ($result === null) ? null : (bool) $result;
+    }
 
     /**
      * @return array<string, ValueResolver>
@@ -132,6 +139,11 @@ class Form
     public function hasAnyValues(): bool
     {
         return count($this->filled()) > 0;
+    }
+
+    public function isEmpty(): bool
+    {
+        return ! $this->hasAnyValues();
     }
 
     public function clear(): self

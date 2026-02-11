@@ -16,6 +16,7 @@ use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\error;
 
 abstract class BaseCommand extends Command
@@ -189,5 +190,42 @@ abstract class BaseCommand extends Command
             },
             $this->hasOption($argument) ? 'option' : 'argument',
         );
+    }
+
+    protected function runUpdate(callable $noninteractiveCallback, callable $interactiveCallback, ?string $resourceType = null): mixed
+    {
+        $resourceType ??= str(class_basename(get_called_class()))->replace('Update', '')->replaceMatches('/[A-Z]/', ' $0')->trim()->lower()->toString();
+
+        if (! $this->isInteractive()) {
+            if (! $this->form()->hasAnyValues()) {
+                $this->outputErrorOrThrow('No fields to update. Provide at least one option.');
+
+                throw new CommandExitException(self::FAILURE);
+            }
+
+            return $noninteractiveCallback();
+        }
+
+        if ($this->form()->isEmpty()) {
+            return $this->loopUntilValid($interactiveCallback);
+        }
+
+        if (! $this->confirmUpdate($resourceType)) {
+            error('Update cancelled');
+
+            throw new CommandExitException(self::FAILURE);
+        }
+
+        // TODO: When would we ever get here?
+        return $noninteractiveCallback();
+    }
+
+    protected function confirmUpdate(string $resourceType): bool
+    {
+        if ($this->hasOption('force') && $this->option('force')) {
+            return true;
+        }
+
+        return confirm('Update the '.$resourceType.'?');
     }
 }
