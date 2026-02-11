@@ -45,7 +45,7 @@ class ApplicationUpdate extends BaseCommand
 
         $this->defineFields($application);
 
-        foreach ($this->form()->filled() as $key => $value) {
+        foreach ($this->form()->filled() as $value) {
             $this->reportChange(
                 $value->label(),
                 $value->previousValue(),
