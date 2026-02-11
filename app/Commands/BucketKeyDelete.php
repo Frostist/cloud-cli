@@ -32,7 +32,7 @@ class BucketKeyDelete extends BaseCommand
         }
 
         spin(
-            fn () => $this->client->bucketKeys()->delete($bucket->id, $key->id),
+            fn () => $this->client->bucketKeys()->delete($key->id),
             'Deleting key...',
         );
 
