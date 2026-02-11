@@ -48,10 +48,9 @@ class BucketKeysResource extends Resource
         return $request->createDtoFromResponse($response);
     }
 
-    public function delete(string $bucketId, string $keyId): void
+    public function delete(string $keyId): void
     {
         $this->send(new DeleteBucketKeyRequest(
-            bucketId: $bucketId,
             keyId: $keyId,
         ));
     }

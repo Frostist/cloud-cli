@@ -4,6 +4,7 @@ namespace App\Resolvers;
 
 use App\Dto\ObjectStorageBucket;
 use Illuminate\Support\Collection;
+use Illuminate\Support\LazyCollection;
 
 use function Laravel\Prompts\spin;
 
@@ -64,7 +65,7 @@ class ObjectStorageBucketResolver extends Resolver
         return $buckets->firstWhere('id', $selected);
     }
 
-    public function fromCollection(Collection $buckets, string $identifier): ?ObjectStorageBucket
+    public function fromCollection(Collection|LazyCollection $buckets, string $identifier): ?ObjectStorageBucket
     {
         return $buckets->firstWhere('id', $identifier)
             ?? $buckets->firstWhere('name', $identifier);
@@ -75,7 +76,7 @@ class ObjectStorageBucketResolver extends Resolver
         return $this->fromCollection($this->fetchAll(), $identifier);
     }
 
-    protected function fetchAll(): Collection
+    protected function fetchAll(): LazyCollection
     {
         return spin(
             fn () => $this->client->objectStorageBuckets()->list()->collect(),
@@ -85,6 +86,6 @@ class ObjectStorageBucketResolver extends Resolver
 
     protected function idPrefix(): string
     {
-        return 'bucket-';
+        return 'fls-';
     }
 }

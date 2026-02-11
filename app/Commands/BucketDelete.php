@@ -23,10 +23,22 @@ class BucketDelete extends BaseCommand
 
         $bucket = $this->resolvers()->objectStorageBucket()->from($this->argument('bucket'));
 
-        if (! $this->option('force') && ! confirm("Delete bucket \"{$bucket->name}\"?", default: false)) {
+        if (! $this->option('force') && ! confirm("Delete bucket \"{$bucket->name}\" and keys?", default: false)) {
             error('Delete cancelled');
 
             return self::FAILURE;
+        }
+
+        $keys = spin(
+            fn () => $this->client->bucketKeys()->list($bucket->id)->collect(),
+            'Fetching keys...',
+        );
+
+        foreach ($keys as $key) {
+            spin(
+                fn () => $this->client->bucketKeys()->delete($key->id),
+                "Deleting key \"{$key->name}\"...",
+            );
         }
 
         spin(

@@ -10,7 +10,6 @@ class DeleteBucketKeyRequest extends Request
     protected Method $method = Method::DELETE;
 
     public function __construct(
-        protected string $bucketId,
         protected string $keyId,
     ) {
         //
@@ -18,6 +17,6 @@ class DeleteBucketKeyRequest extends Request
 
     public function resolveEndpoint(): string
     {
-        return "/buckets/{$this->bucketId}/keys/{$this->keyId}";
+        return "/bucket-keys/{$this->keyId}";
     }
 }
