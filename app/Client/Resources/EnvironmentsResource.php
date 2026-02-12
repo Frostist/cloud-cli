@@ -80,13 +80,9 @@ class EnvironmentsResource extends Resource
         $this->send(new AddEnvironmentVariablesRequest($data));
     }
 
-    public function replaceVariables(string $environmentId, array $variables = [], ?string $content = null): void
+    public function replaceVariables(ReplaceEnvironmentVariablesRequestData $data): void
     {
-        $this->send(new ReplaceEnvironmentVariablesRequest(new ReplaceEnvironmentVariablesRequestData(
-            environmentId: $environmentId,
-            content: $content,
-            variables: $variables,
-        )));
+        $this->send(new ReplaceEnvironmentVariablesRequest($data));
     }
 
     public function start(string $environmentId): void

@@ -104,14 +104,14 @@ class Form
         return $this->fields[$key]['resolver']->value();
     }
 
-    public function integer(string $key, mixed $default = null): ?int
+    public function integer(string $key, ?int $default = null): ?int
     {
         $result = $this->get($key, $default);
 
         return ($result === null) ? null : (int) $result;
     }
 
-    public function boolean(string $key, mixed $default = null): ?bool
+    public function boolean(string $key, ?bool $default = null): ?bool
     {
         $result = $this->get($key, $default);
 

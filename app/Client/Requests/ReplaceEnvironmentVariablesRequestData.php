@@ -7,27 +7,17 @@ class ReplaceEnvironmentVariablesRequestData extends RequestData
     public function __construct(
         public readonly string $environmentId,
         public readonly ?string $content = null,
-        /** @var array<string, string> */
-        public readonly array $variables = [],
+        /** @var list<array{key: string, value: string}>|null */
+        public readonly ?array $variables = null,
     ) {
         //
     }
 
     public function toRequestData(): array
     {
-        $body = [];
-
-        if ($this->content !== null) {
-            $body['content'] = $this->content;
-        }
-
-        if ($this->variables !== []) {
-            $body['variables'] = collect($this->variables)->map(fn ($value, $key) => [
-                'key' => $key,
-                'value' => $value,
-            ])->values()->toArray();
-        }
-
-        return $body;
+        return $this->filter([
+            'variables' => $this->variables,
+            'content' => $this->content,
+        ]);
     }
 }
