@@ -3,7 +3,7 @@
 namespace App\Resolvers;
 
 use App\Dto\WebsocketCluster;
-use Illuminate\Support\Collection;
+use Illuminate\Support\LazyCollection;
 
 use function Laravel\Prompts\spin;
 
@@ -70,12 +70,12 @@ class WebSocketClusterResolver extends Resolver
             ?? $this->fetchAll()->firstWhere('name', $identifier);
     }
 
-    protected function fetchAll(): Collection
+    protected function fetchAll(): LazyCollection
     {
-        return collect(spin(
+        return spin(
             fn () => $this->client->websocketClusters()->list(),
             'Fetching WebSocket clusters...',
-        ));
+        )->collect();
     }
 
     protected function idPrefix(): string

@@ -28,7 +28,7 @@ class WebsocketClusterList extends BaseCommand
             'Fetching WebSocket clusters...',
         );
 
-        $items = collect($clusters);
+        $items = $clusters->collect();
 
         $this->outputJsonIfWanted($items->toArray());
 
@@ -39,13 +39,12 @@ class WebsocketClusterList extends BaseCommand
         }
 
         dataTable(
-            headers: ['ID', 'Name', 'Region', 'Status', 'Hostname'],
+            headers: ['ID', 'Name', 'Region', 'Status'],
             rows: $items->map(fn (WebsocketCluster $c) => [
                 $c->id,
                 $c->name,
                 $c->region,
                 $c->status->value ?? $c->status->name,
-                $c->hostname,
             ])->toArray(),
             actions: [
                 Key::ENTER => [
