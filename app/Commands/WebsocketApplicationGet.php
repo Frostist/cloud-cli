@@ -8,7 +8,6 @@ use function Laravel\Prompts\spin;
 class WebsocketApplicationGet extends BaseCommand
 {
     protected $signature = 'websocket-application:get
-                            {cluster? : The WebSocket cluster ID or name}
                             {application? : The application ID or name}
                             {--json : Output as JSON}';
 
@@ -20,11 +19,10 @@ class WebsocketApplicationGet extends BaseCommand
 
         intro('WebSocket Application Details');
 
-        $cluster = $this->resolvers()->websocketCluster()->from($this->argument('cluster'));
-        $app = $this->resolvers()->websocketApplication()->from($cluster, $this->argument('application'));
+        $app = $this->resolvers()->websocketApplication()->from($this->argument('application'));
 
         $app = spin(
-            fn () => $this->client->websocketApplications()->get($cluster->id, $app->id),
+            fn () => $this->client->websocketApplications()->get($app->id),
             'Fetching WebSocket application...',
         );
 
