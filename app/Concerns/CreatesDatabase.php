@@ -31,21 +31,12 @@ trait CreatesDatabase
         );
 
         return spin(
-            fn () => $this->client->databases()->create(new CreateDatabaseRequestData(
-                clusterId: $cluster->id,
-                name: $this->form()->get('name'),
-            )),
-            'Creating database...',
-        );
-    }
-
-    protected function createDatabaseWithName(DatabaseCluster $cluster, string $name): Database
-    {
-        return spin(
-            fn () => $this->client->databases()->create(new CreateDatabaseRequestData(
-                clusterId: $cluster->id,
-                name: $name,
-            )),
+            fn () => $this->client->databases()->create(
+                new CreateDatabaseRequestData(
+                    clusterId: $cluster->id,
+                    name: $this->form()->get('name'),
+                ),
+            ),
             'Creating database...',
         );
     }
