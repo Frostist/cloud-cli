@@ -45,6 +45,11 @@ class Resolvers
         return $this->make(DatabaseClusterResolver::class);
     }
 
+    public function database(): DatabaseResolver
+    {
+        return $this->make(DatabaseResolver::class);
+    }
+
     public function databaseSnapshot(): DatabaseSnapshotResolver
     {
         return $this->make(DatabaseSnapshotResolver::class);

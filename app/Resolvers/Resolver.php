@@ -22,13 +22,19 @@ abstract class Resolver
         //
     }
 
-    abstract protected function idPrefix(): string;
+    abstract protected function idPrefix(): string|callable;
 
     protected function resolveFromIdentifier(string $identifier, callable $ifIdCallback, ?callable $ifNotIdCallback = null): mixed
     {
         $ifNotIdCallback = $ifNotIdCallback ?? fn () => null;
 
-        if (! str_starts_with($identifier, $this->idPrefix())) {
+        $idPrefix = $this->idPrefix();
+
+        if (is_string($idPrefix) && ! str_starts_with($identifier, $idPrefix)) {
+            return $ifNotIdCallback();
+        }
+
+        if (is_callable($idPrefix) && ! $idPrefix($identifier)) {
             return $ifNotIdCallback();
         }
 

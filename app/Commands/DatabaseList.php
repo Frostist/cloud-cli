@@ -11,7 +11,7 @@ use function Laravel\Prompts\warning;
 class DatabaseList extends BaseCommand
 {
     protected $signature = 'database:list
-                            {database-cluster? : The database cluster ID or name}
+                            {cluster? : The database cluster ID or name}
                             {--json : Output as JSON}';
 
     protected $description = 'List all databases (schemas) in a database cluster';
@@ -22,7 +22,7 @@ class DatabaseList extends BaseCommand
 
         intro('Databases');
 
-        $cluster = $this->resolvers()->databaseCluster()->from($this->argument('database-cluster'));
+        $cluster = $this->resolvers()->databaseCluster()->from($this->argument('cluster'));
 
         $databases = spin(
             fn () => $this->client->databases()->list($cluster->id)->collect(),
@@ -47,7 +47,7 @@ class DatabaseList extends BaseCommand
             actions: [
                 Key::ENTER => [
                     fn ($row) => $this->call('database:get', [
-                        'database-cluster' => $cluster->id,
+                        'cluster' => $cluster->id,
                         'database' => $row[0],
                     ]),
                     'View',
