@@ -2,6 +2,8 @@
 
 namespace App\Commands;
 
+use App\Dto\DedicatedCluster;
+
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\warning;
@@ -21,11 +23,11 @@ class DedicatedClusterList extends BaseCommand
         answered('Organization', $this->client->meta()->organization()->name);
 
         $clusters = spin(
-            fn () => $this->client->dedicatedClusters()->list(),
+            fn () => $this->client->dedicatedClusters()->list()->collect(),
             'Fetching dedicated clusters...',
         );
 
-        $items = collect($clusters);
+        $items = $clusters->collect();
 
         $this->outputJsonIfWanted($items->toArray());
 
@@ -35,11 +37,11 @@ class DedicatedClusterList extends BaseCommand
             return self::FAILURE;
         }
 
-        $rows = $items->map(fn ($cluster) => [
-            $cluster['id'] ?? '—',
-            $cluster['attributes']['name'] ?? $cluster['name'] ?? '—',
-            $cluster['attributes']['region'] ?? $cluster['region'] ?? '—',
-            $cluster['attributes']['status'] ?? $cluster['status'] ?? '—',
+        $rows = $items->map(fn (DedicatedCluster $cluster) => [
+            $cluster->id,
+            $cluster->name,
+            $cluster->region,
+            $cluster->status,
         ])->toArray();
 
         dataTable(

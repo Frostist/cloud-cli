@@ -3,13 +3,14 @@
 namespace App\Client\Resources;
 
 use App\Client\Resources\DedicatedClusters\ListDedicatedClustersRequest;
+use Saloon\PaginationPlugin\Paginator;
 
 class DedicatedClustersResource extends Resource
 {
-    public function list(): array
+    public function list(): Paginator
     {
-        $response = $this->send(new ListDedicatedClustersRequest);
+        $request = new ListDedicatedClustersRequest;
 
-        return $response->json()['data'] ?? [];
+        return $this->paginate($request);
     }
 }
