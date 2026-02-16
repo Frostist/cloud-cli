@@ -35,7 +35,7 @@ class Deploy extends BaseCommand
     {
         slideIn('TO THE *CLOUD*');
 
-        intro('Deploying Application To Laravel Cloud');
+        intro('Deploying Application to Laravel Cloud');
 
         $this->ensureClient();
         $this->ensureRemoteGitRepo();
@@ -55,7 +55,7 @@ class Deploy extends BaseCommand
                 return;
             }
 
-            error('Deployment cancelled.');
+            error('Cancelled');
 
             return self::FAILURE;
         }

@@ -6,7 +6,6 @@ use Illuminate\Http\Client\RequestException;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\error;
-use function Laravel\Prompts\info;
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\outro;
 use function Laravel\Prompts\spin;
@@ -27,7 +26,7 @@ class InstanceDelete extends BaseCommand
 
         if (! $this->option('force')) {
             if (! confirm("Delete instance '{$instance->name}'?")) {
-                info('Cancelled.');
+                error('Cancelled');
 
                 return self::FAILURE;
             }

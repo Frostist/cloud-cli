@@ -66,7 +66,7 @@ class Ship extends BaseCommand
 
         slideIn('WE MUST *SHIP*');
 
-        intro('Shipping Application To Laravel Cloud');
+        intro('Shipping Application to Laravel Cloud');
 
         $this->ensureClient();
         $this->ensureRemoteGitRepo();

@@ -25,8 +25,8 @@ class DatabaseSnapshotDelete extends BaseCommand
         $cluster = $this->resolvers()->databaseCluster()->from($this->argument('cluster'));
         $snapshot = $this->resolvers()->databaseSnapshot()->from($cluster, $this->argument('snapshot'));
 
-        if (! $this->option('force') && ! confirm("Delete snapshot \"{$snapshot->name}\"?", default: false)) {
-            error('Delete cancelled');
+        if (! $this->option('force') && ! confirm("Delete snapshot '{$snapshot->name}'?", default: false)) {
+            error('Cancelled');
 
             return self::FAILURE;
         }

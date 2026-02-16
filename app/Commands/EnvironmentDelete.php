@@ -26,7 +26,7 @@ class EnvironmentDelete extends BaseCommand
         $environment = $this->resolvers()->environment()->from($this->argument('environment'));
 
         if (! $this->option('force') && ! confirm("Delete environment '{$environment->name}'?")) {
-            error('Cancelled.');
+            error('Cancelled');
 
             return self::FAILURE;
         }

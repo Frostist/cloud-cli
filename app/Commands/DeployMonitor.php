@@ -48,7 +48,7 @@ class DeployMonitor extends BaseCommand
                 return;
             }
 
-            error('Monitoring cancelled.');
+            error('Cancelled');
 
             return self::FAILURE;
         }

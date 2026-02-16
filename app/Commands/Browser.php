@@ -21,7 +21,7 @@ class Browser extends BaseCommand
 
     public function handle()
     {
-        intro('Opening Site In Browser');
+        intro('Opening Site in Browser');
 
         $this->ensureClient();
         $this->ensureRemoteGitRepo();

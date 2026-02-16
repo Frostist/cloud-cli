@@ -36,7 +36,7 @@ class NumberPromptRenderer extends Renderer
                     color: 'red',
                     symbol: TimelineSymbol::FAILURE,
                 )
-                ->error('Cancelled.'),
+                ->error('Cancelled'),
 
             'error' => $this
                 ->box(

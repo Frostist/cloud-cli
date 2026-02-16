@@ -60,7 +60,7 @@ class EnvironmentVariables extends BaseCommand
 
         if ($this->form()->get('action') === 'replace' && ! $this->option('force')) {
             if (! $this->isInteractive()) {
-                $this->failAndExit('Update cancelled, use --force to force update');
+                $this->failAndExit('Cancelled. Use --force to force update.');
             }
 
             if (! confirm(
@@ -68,7 +68,7 @@ class EnvironmentVariables extends BaseCommand
                 yes: 'Yes, continue',
                 no: 'No, cancel',
             )) {
-                $this->failAndExit('Update cancelled');
+                $this->failAndExit('Cancelled');
             }
         }
 

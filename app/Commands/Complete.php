@@ -75,7 +75,7 @@ class Complete extends BaseCommand implements NoAuthRequired
 
         if (! is_dir($completionsDir)) {
             if (! confirm("Create completions directory at {$completionsDir}?")) {
-                info('Aborted.');
+                error('Cancelled');
 
                 return self::SUCCESS;
             }
@@ -89,7 +89,7 @@ class Complete extends BaseCommand implements NoAuthRequired
             : "Write completion script to {$completionFile}?";
 
         if (! confirm($confirmMessage)) {
-            info('Aborted.');
+            error('Cancelled');
 
             return self::SUCCESS;
         }

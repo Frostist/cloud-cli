@@ -45,7 +45,7 @@ class DatabaseClusterDelete extends BaseCommand
         }
 
         if (! $dontConfirm && ! confirm('Delete database cluster'.$schemaSuffix.'?')) {
-            error('Cancelled.');
+            error('Cancelled');
 
             return self::FAILURE;
         }

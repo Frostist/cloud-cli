@@ -24,8 +24,8 @@ class BucketKeyDelete extends BaseCommand
         $bucket = $this->resolvers()->objectStorageBucket()->resolve();
         $key = $this->resolvers()->bucketKey()->from($bucket, $this->argument('key'));
 
-        if (! $this->option('force') && ! confirm("Delete key \"{$key->name}\"?", default: false)) {
-            error('Delete cancelled');
+        if (! $this->option('force') && ! confirm("Delete key '{$key->name}'?", default: false)) {
+            error('Cancelled');
 
             return self::FAILURE;
         }

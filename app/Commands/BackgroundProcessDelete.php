@@ -30,7 +30,7 @@ class BackgroundProcessDelete extends BaseCommand
         $dontConfirm = $this->option('force') && $this->argument('process');
 
         if (! $dontConfirm && ! confirm('Delete background process?')) {
-            error('Cancelled.');
+            error('Cancelled');
 
             return self::FAILURE;
         }

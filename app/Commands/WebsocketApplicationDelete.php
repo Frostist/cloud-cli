@@ -23,8 +23,8 @@ class WebsocketApplicationDelete extends BaseCommand
 
         $app = $this->resolvers()->websocketApplication()->from($this->argument('application'));
 
-        if (! $this->option('force') && ! confirm("Delete WebSocket application \"{$app->name}\"?", default: false)) {
-            error('Delete cancelled');
+        if (! $this->option('force') && ! confirm("Delete WebSocket application '{$app->name}'?", default: false)) {
+            error('Cancelled');
 
             return self::FAILURE;
         }

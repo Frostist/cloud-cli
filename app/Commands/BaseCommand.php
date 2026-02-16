@@ -223,7 +223,7 @@ abstract class BaseCommand extends Command
         }
 
         if (! $this->confirmUpdate($resourceType)) {
-            error('Update cancelled');
+            error('Cancelled');
 
             throw new CommandExitException(self::FAILURE);
         }

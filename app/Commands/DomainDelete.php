@@ -6,7 +6,6 @@ use Illuminate\Http\Client\RequestException;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\error;
-use function Laravel\Prompts\info;
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\spin;
 
@@ -25,7 +24,7 @@ class DomainDelete extends BaseCommand
         $domain = $this->resolvers()->domain()->from($this->argument('domain'));
 
         if (! $this->option('force') && ! confirm("Delete domain '{$domain->name}'?")) {
-            info('Cancelled.');
+            error('Cancelled');
 
             return self::FAILURE;
         }

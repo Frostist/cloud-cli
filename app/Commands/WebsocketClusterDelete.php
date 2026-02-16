@@ -23,8 +23,8 @@ class WebsocketClusterDelete extends BaseCommand
 
         $cluster = $this->resolvers()->websocketCluster()->from($this->argument('cluster'));
 
-        if (! $this->option('force') && ! confirm("Delete WebSocket cluster \"{$cluster->name}\"?", default: false)) {
-            error('Delete cancelled');
+        if (! $this->option('force') && ! confirm("Delete WebSocket cluster '{$cluster->name}'?", default: false)) {
+            error('Cancelled');
 
             return self::FAILURE;
         }

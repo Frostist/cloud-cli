@@ -23,8 +23,8 @@ class CacheDelete extends BaseCommand
 
         $cache = $this->resolvers()->cache()->from($this->argument('cache'));
 
-        if (! $this->option('force') && ! confirm("Delete cache \"{$cache->name}\"?", default: false)) {
-            error('Delete cancelled');
+        if (! $this->option('force') && ! confirm("Delete cache '{$cache->name}'?", default: false)) {
+            error('Cancelled');
 
             return self::FAILURE;
         }

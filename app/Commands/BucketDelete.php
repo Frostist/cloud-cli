@@ -23,8 +23,8 @@ class BucketDelete extends BaseCommand
 
         $bucket = $this->resolvers()->objectStorageBucket()->from($this->argument('bucket'));
 
-        if (! $this->option('force') && ! confirm("Delete bucket \"{$bucket->name}\" and keys?", default: false)) {
-            error('Delete cancelled');
+        if (! $this->option('force') && ! confirm("Delete bucket '{$bucket->name}' and keys?", default: false)) {
+            error('Cancelled');
 
             return self::FAILURE;
         }
