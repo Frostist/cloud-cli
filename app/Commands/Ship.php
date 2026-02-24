@@ -4,7 +4,7 @@ namespace App\Commands;
 
 use App\Client\Requests\AddEnvironmentVariablesRequestData;
 use App\Client\Requests\CreateApplicationRequestData;
-use App\Client\Requests\UpdateApplicationRequestData;
+use App\Client\Requests\UpdateApplicationAvatarRequestData;
 use App\Client\Requests\UpdateEnvironmentRequestData;
 use App\Client\Requests\UpdateInstanceRequestData;
 use App\Concerns\CreatesDatabase;
@@ -180,9 +180,9 @@ class Ship extends BaseCommand
 
         try {
             $path = $avatars->first();
-            $this->client->applications()->update(new UpdateApplicationRequestData(
+            $this->client->applications()->updateAvatar(new UpdateApplicationAvatarRequestData(
                 applicationId: $application->id,
-                avatar: [file_get_contents($path), pathinfo($path, PATHINFO_EXTENSION)],
+                avatar: $this->getAvatarFromPath($path),
             ));
         } catch (Throwable $e) {
             // All good, this is a nice bonus but not critical

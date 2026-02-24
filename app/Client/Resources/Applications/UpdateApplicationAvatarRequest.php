@@ -2,29 +2,29 @@
 
 namespace App\Client\Resources\Applications;
 
-use App\Client\Requests\UpdateApplicationRequestData;
+use App\Client\Requests\UpdateApplicationAvatarRequestData;
 use App\Dto\Application;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
 use Saloon\Http\Response;
-use Saloon\Traits\Body\HasJsonBody;
+use Saloon\Traits\Body\HasMultipartBody;
 
-class UpdateApplicationRequest extends Request implements HasBody
+class UpdateApplicationAvatarRequest extends Request implements HasBody
 {
-    use HasJsonBody;
+    use HasMultipartBody;
 
-    protected Method $method = Method::PATCH;
+    protected Method $method = Method::POST;
 
     public function __construct(
-        protected UpdateApplicationRequestData $data,
+        protected UpdateApplicationAvatarRequestData $data,
     ) {
         //
     }
 
     public function resolveEndpoint(): string
     {
-        return "/applications/{$this->data->applicationId}";
+        return "/applications/{$this->data->applicationId}/avatar";
     }
 
     protected function defaultBody(): array
