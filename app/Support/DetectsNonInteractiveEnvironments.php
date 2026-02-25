@@ -15,6 +15,7 @@ trait DetectsNonInteractiveEnvironments
             'CIRCLECI',
             'TRAVIS',
             'AGENT_MODE',
+            'OPENCODE',
         ];
 
         foreach ($envs as $env) {

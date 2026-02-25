@@ -7,7 +7,6 @@ use App\Concerns\RequiresRemoteGitRepo;
 use App\Concerns\UpdatesBuildDeployCommands;
 use App\Dto\Deployment;
 use App\Exceptions\CommandExitException;
-use App\Git;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterval;
 use Illuminate\Support\Facades\Artisan;
@@ -40,8 +39,6 @@ class Deploy extends BaseCommand
 
         $this->ensureClient();
         $this->ensureRemoteGitRepo();
-
-        $repository = app(Git::class)->remoteRepo();
 
         $app = $this->resolvers()->application()->from($this->argument('application'));
 
