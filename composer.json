@@ -1,24 +1,22 @@
 {
     "name": "laravel/cloud-cli",
-    "description": "The Laravel Zero Framework.",
+    "description": "CLI to interact with Laravel Cloud",
     "keywords": [
-        "framework",
         "laravel",
-        "laravel zero",
-        "console",
+        "cloud",
         "cli"
     ],
-    "homepage": "https://laravel-zero.com",
+    "homepage": "https://cloud.laravel.com",
     "type": "project",
     "license": "MIT",
     "support": {
-        "issues": "https://github.com/laravel-zero/laravel-zero/issues",
-        "source": "https://github.com/laravel-zero/laravel-zero"
+        "issues": "https://github.com/laravel/cloud-cli/issues",
+        "source": "https://github.com/laravel/cloud-cli"
     },
     "authors": [
         {
-            "name": "Nuno Maduro",
-            "email": "enunomaduro@gmail.com"
+            "name": "Taylor Otwell",
+            "email": "taylor@laravel.com"
         }
     ],
     "require": {
