@@ -25,9 +25,9 @@
         "illuminate/translation": "^12.53",
         "illuminate/validation": "^12.53",
         "laravel-zero/phar-updater": "^1.4",
-        "saloonphp/cache-plugin": "^3.0",
-        "saloonphp/pagination-plugin": "^2.0",
-        "saloonphp/saloon": "^3.0",
+        "saloonphp/cache-plugin": "^3.1",
+        "saloonphp/pagination-plugin": "^2.3",
+        "saloonphp/saloon": "^4.0",
         "shipfastlabs/agent-detector": "^1.0",
         "spatie/laravel-data": "^4.19"
     },
