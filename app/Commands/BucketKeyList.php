@@ -11,9 +11,12 @@ use function Laravel\Prompts\warning;
 
 class BucketKeyList extends BaseCommand
 {
+    protected ?string $jsonDataClass = BucketKey::class;
+
+    protected bool $jsonDataIsCollection = true;
+
     protected $signature = 'bucket-key:list
-                            {bucket? : The bucket ID or name}
-                            {--json : Output as JSON}';
+                            {bucket? : The bucket ID or name}';
 
     protected $description = 'List keys for an object storage bucket';
 

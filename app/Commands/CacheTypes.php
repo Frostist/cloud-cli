@@ -11,7 +11,11 @@ use function Laravel\Prompts\warning;
 
 class CacheTypes extends BaseCommand
 {
-    protected $signature = 'cache:types {--json : Output as JSON}';
+    protected ?string $jsonDataClass = CacheType::class;
+
+    protected bool $jsonDataIsCollection = true;
+
+    protected $signature = 'cache:types';
 
     protected $description = 'List available cache types';
 

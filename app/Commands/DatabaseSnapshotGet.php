@@ -2,15 +2,18 @@
 
 namespace App\Commands;
 
+use App\Dto\DatabaseSnapshot;
+
 use function Laravel\Prompts\intro;
 use function Laravel\Prompts\spin;
 
 class DatabaseSnapshotGet extends BaseCommand
 {
+    protected ?string $jsonDataClass = DatabaseSnapshot::class;
+
     protected $signature = 'database-snapshot:get
                             {cluster? : The database cluster ID or name}
-                            {snapshot? : The snapshot ID or name}
-                            {--json : Output as JSON}';
+                            {snapshot? : The snapshot ID or name}';
 
     protected $description = 'Get database snapshot details';
 

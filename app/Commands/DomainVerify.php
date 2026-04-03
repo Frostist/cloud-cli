@@ -2,6 +2,7 @@
 
 namespace App\Commands;
 
+use App\Dto\Domain;
 use Illuminate\Http\Client\RequestException;
 
 use function Laravel\Prompts\error;
@@ -10,7 +11,9 @@ use function Laravel\Prompts\spin;
 
 class DomainVerify extends BaseCommand
 {
-    protected $signature = 'domain:verify {domain? : The domain ID} {--json : Output as JSON}';
+    protected ?string $jsonDataClass = Domain::class;
+
+    protected $signature = 'domain:verify {domain? : The domain ID}';
 
     protected $description = 'Verify domain DNS records are properly set up';
 

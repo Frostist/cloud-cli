@@ -17,6 +17,8 @@ use function Laravel\Prompts\text;
 
 class ApplicationUpdate extends BaseCommand
 {
+    protected ?string $jsonDataClass = Application::class;
+
     use HandlesAvatars;
 
     protected $signature = 'application:update
@@ -27,8 +29,7 @@ class ApplicationUpdate extends BaseCommand
                             {--repository= : Repository URL}
                             {--avatar= : Avatar URL or full path to a file}
                             {--default-environment= : Default environment ID or name}
-                            {--force : Force update without confirmation}
-                            {--json : Output as JSON}';
+                            {--force : Force update without confirmation}';
 
     protected $description = 'Update an application';
 

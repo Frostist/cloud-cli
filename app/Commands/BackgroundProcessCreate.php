@@ -3,6 +3,7 @@
 namespace App\Commands;
 
 use App\Client\Requests\CreateBackgroundProcessRequestData;
+use App\Dto\BackgroundProcess;
 use App\Dto\EnvironmentInstance;
 
 use function Laravel\Prompts\confirm;
@@ -14,6 +15,8 @@ use function Laravel\Prompts\text;
 
 class BackgroundProcessCreate extends BaseCommand
 {
+    protected ?string $jsonDataClass = BackgroundProcess::class;
+
     protected $signature = 'background-process:create
                             {instance? : The instance ID}
                             {--type= : Process type (worker|custom)}
@@ -26,8 +29,7 @@ class BackgroundProcessCreate extends BaseCommand
                             {--timeout=60 : Timeout time}
                             {--tries=1 : Number of tries}
                             {--force=0 : Force the process to run in maintenance mode}
-                            {--processes=1 : Number of processes}
-                            {--json : Output as JSON}';
+                            {--processes=1 : Number of processes}';
 
     protected $description = 'Create a new background process';
 

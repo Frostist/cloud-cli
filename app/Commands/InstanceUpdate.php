@@ -15,6 +15,8 @@ use function Laravel\Prompts\spin;
 
 class InstanceUpdate extends BaseCommand
 {
+    protected ?string $jsonDataClass = EnvironmentInstance::class;
+
     protected $signature = 'instance:update
                             {instance? : The instance ID or name}
                             {--size= : Instance size}
@@ -28,8 +30,7 @@ class InstanceUpdate extends BaseCommand
                             {--uses-inertia-ssr= : Uses Inertia SSR}
                             {--hibernation= : Uses hibernation}
                             {--hibernation-timeout= : Hibernation timeout}
-                            {--force : Force update without confirmation}
-                            {--json : Output as JSON}';
+                            {--force : Force update without confirmation}';
 
     protected $description = 'Update an instance';
 

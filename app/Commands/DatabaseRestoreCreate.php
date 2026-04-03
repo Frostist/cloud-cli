@@ -3,6 +3,7 @@
 namespace App\Commands;
 
 use App\Client\Requests\CreateDatabaseRestoreRequestData;
+use App\Dto\DatabaseCluster;
 use App\Exceptions\CommandExitException;
 
 use function Laravel\Prompts\intro;
@@ -12,12 +13,13 @@ use function Laravel\Prompts\text;
 
 class DatabaseRestoreCreate extends BaseCommand
 {
+    protected ?string $jsonDataClass = DatabaseCluster::class;
+
     protected $signature = 'database-restore:create
                             {cluster? : The database cluster ID or name}
                             {name? : The name of the restore}
                             {--snapshot= : Snapshot ID to restore from}
-                            {--point-in-time= : Point-in-time (ISO 8601) to restore to}
-                            {--json : Output as JSON}';
+                            {--point-in-time= : Point-in-time (ISO 8601) to restore to}';
 
     protected $description = 'Create a database restore from a snapshot or point-in-time';
 

@@ -3,6 +3,7 @@
 namespace App\Commands;
 
 use App\Client\Requests\CreateDomainRequestData;
+use App\Dto\Domain;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\intro;
@@ -12,13 +13,14 @@ use function Laravel\Prompts\text;
 
 class DomainCreate extends BaseCommand
 {
+    protected ?string $jsonDataClass = Domain::class;
+
     protected $signature = 'domain:create
                             {environment? : The environment ID or name}
                             {--name= : The domain name}
                             {--www-redirect= : The redirect strategy}
                             {--wildcard-enabled= : Whether to enable wildcard}
-                            {--verification-method= : The verification method}
-                            {--json : Output as JSON}';
+                            {--verification-method= : The verification method}';
 
     protected $description = 'Create a new domain';
 

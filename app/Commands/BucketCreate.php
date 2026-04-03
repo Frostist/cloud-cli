@@ -4,6 +4,7 @@ namespace App\Commands;
 
 use App\Client\Requests\CreateObjectStorageBucketRequestData;
 use App\Concerns\DeterminesDefaultRegion;
+use App\Dto\ObjectStorageBucket;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\intro;
@@ -13,6 +14,8 @@ use function Laravel\Prompts\text;
 
 class BucketCreate extends BaseCommand
 {
+    protected ?string $jsonDataClass = ObjectStorageBucket::class;
+
     use DeterminesDefaultRegion;
 
     protected $signature = 'bucket:create
@@ -22,8 +25,7 @@ class BucketCreate extends BaseCommand
                             {--jurisdiction= : Jurisdiction (eu or default)}
                             {--key-name= : Key name (required for S3 compatible buckets)}
                             {--key-permission= : Key permission (read_only or read_write)}
-                            {--allowed-origins= : Allowed origins (comma-separated list)}
-                            {--json : Output as JSON}';
+                            {--allowed-origins= : Allowed origins (comma-separated list)}';
 
     protected $description = 'Create an object storage bucket';
 

@@ -3,17 +3,19 @@
 namespace App\Commands;
 
 use App\Concerns\CreatesWebSocketApplication;
+use App\Dto\WebsocketApplication;
 
 use function Laravel\Prompts\intro;
 
 class WebsocketApplicationCreate extends BaseCommand
 {
+    protected ?string $jsonDataClass = WebsocketApplication::class;
+
     use CreatesWebSocketApplication;
 
     protected $signature = 'websocket-application:create
                             {cluster? : The WebSocket cluster ID or name}
-                            {--name= : Application name}
-                            {--json : Output as JSON}';
+                            {--name= : Application name}';
 
     protected $description = 'Create a WebSocket application';
 

@@ -14,13 +14,14 @@ use function Laravel\Prompts\textarea;
 
 class EnvironmentUpdate extends BaseCommand
 {
+    protected ?string $jsonDataClass = Environment::class;
+
     protected $signature = 'environment:update
                             {environment? : The environment ID or name}
                             {--branch= : Git branch}
                             {--build-command= : Build command}
                             {--deploy-command= : Deploy command}
-                            {--force : Force update without confirmation}
-                            {--json : Output as JSON}';
+                            {--force : Force update without confirmation}';
 
     protected $description = 'Update an environment';
 

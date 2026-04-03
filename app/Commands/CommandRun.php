@@ -14,14 +14,15 @@ use function Laravel\Prompts\warning;
 
 class CommandRun extends BaseCommand
 {
+    protected ?string $jsonDataClass = Command::class;
+
     use InteractsWithClipbboard;
 
     protected $signature = 'command:run
                             {environment? : The environment ID}
                             {--cmd= : The command to run}
                             {--no-monitor : Do not monitor the command in real-time}
-                            {--copy-output : Copy the output to the clipboard}
-                            {--json : Output as JSON}';
+                            {--copy-output : Copy the output to the clipboard}';
 
     protected $description = 'Run a command on an environment';
 

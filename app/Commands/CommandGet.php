@@ -3,14 +3,17 @@
 namespace App\Commands;
 
 use App\Concerns\InteractsWithClipbboard;
+use App\Dto\Command;
 
 use function Laravel\Prompts\intro;
 
 class CommandGet extends BaseCommand
 {
+    protected ?string $jsonDataClass = Command::class;
+
     use InteractsWithClipbboard;
 
-    protected $signature = 'command:get {commandId? : The command ID} {--json : Output as JSON} {--copy-output : Copy the output to the clipboard}';
+    protected $signature = 'command:get {commandId? : The command ID} {--copy-output : Copy the output to the clipboard}';
 
     protected $description = 'Get command details';
 

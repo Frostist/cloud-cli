@@ -3,6 +3,7 @@
 namespace App\Commands;
 
 use App\Client\Requests\CreateEnvironmentRequestData;
+use App\Dto\Environment;
 use App\Git;
 
 use function Laravel\Prompts\intro;
@@ -11,11 +12,12 @@ use function Laravel\Prompts\text;
 
 class EnvironmentCreate extends BaseCommand
 {
+    protected ?string $jsonDataClass = Environment::class;
+
     protected $signature = 'environment:create
                             {application? : The application ID}
                             {--name= : Environment name}
-                            {--branch= : Git branch}
-                            {--json : Output as JSON}';
+                            {--branch= : Git branch}';
 
     protected $description = 'Create a new environment';
 

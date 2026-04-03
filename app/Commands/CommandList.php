@@ -2,13 +2,18 @@
 
 namespace App\Commands;
 
+use App\Dto\Command;
 use Laravel\Prompts\Key;
 
 use function Laravel\Prompts\intro;
 
 class CommandList extends BaseCommand
 {
-    protected $signature = 'command:list {environment? : The environment ID} {--json : Output as JSON}';
+    protected ?string $jsonDataClass = Command::class;
+
+    protected bool $jsonDataIsCollection = true;
+
+    protected $signature = 'command:list {environment? : The environment ID}';
 
     protected $description = 'List all commands for an environment';
 

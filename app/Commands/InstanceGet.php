@@ -2,11 +2,15 @@
 
 namespace App\Commands;
 
+use App\Dto\EnvironmentInstance;
+
 use function Laravel\Prompts\intro;
 
 class InstanceGet extends BaseCommand
 {
-    protected $signature = 'instance:get {instance? : The instance ID} {--json : Output as JSON}';
+    protected ?string $jsonDataClass = EnvironmentInstance::class;
+
+    protected $signature = 'instance:get {instance? : The instance ID}';
 
     protected $description = 'Get instance details';
 

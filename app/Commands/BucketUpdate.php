@@ -14,12 +14,13 @@ use function Laravel\Prompts\text;
 
 class BucketUpdate extends BaseCommand
 {
+    protected ?string $jsonDataClass = ObjectStorageBucket::class;
+
     protected $signature = 'bucket:update
                             {bucket? : The bucket ID or name}
                             {--name= : Bucket name}
                             {--visibility= : Visibility (private or public)}
-                            {--force : Force update without confirmation}
-                            {--json : Output as JSON}';
+                            {--force : Force update without confirmation}';
 
     protected $description = 'Update an object storage bucket';
 

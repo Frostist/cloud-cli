@@ -5,6 +5,7 @@ namespace App\Commands;
 use App\Client\Requests\CreateApplicationRequestData;
 use App\Concerns\DeterminesDefaultRegion;
 use App\Concerns\RequiresRemoteGitRepo;
+use App\Dto\Application;
 use App\Dto\Region;
 use App\Git;
 
@@ -15,14 +16,15 @@ use function Laravel\Prompts\text;
 
 class ApplicationCreate extends BaseCommand
 {
+    protected ?string $jsonDataClass = Application::class;
+
     use DeterminesDefaultRegion;
     use RequiresRemoteGitRepo;
 
     protected $signature = 'application:create
                             {--name= : Application name}
                             {--repository= : Repository (owner/repo format)}
-                            {--region= : Application region}
-                            {--json : Output as JSON}';
+                            {--region= : Application region}';
 
     protected $description = 'Create a new application';
 

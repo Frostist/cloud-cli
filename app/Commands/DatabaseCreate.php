@@ -3,17 +3,19 @@
 namespace App\Commands;
 
 use App\Concerns\CreatesDatabase;
+use App\Dto\Database;
 
 use function Laravel\Prompts\intro;
 
 class DatabaseCreate extends BaseCommand
 {
+    protected ?string $jsonDataClass = Database::class;
+
     use CreatesDatabase;
 
     protected $signature = 'database:create
                             {cluster? : The database cluster ID or name}
-                            {--name= : Database (schema) name}
-                            {--json : Output as JSON}';
+                            {--name= : Database (schema) name}';
 
     protected $description = 'Create a new database (schema) in a database cluster';
 
