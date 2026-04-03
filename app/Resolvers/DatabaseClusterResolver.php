@@ -20,7 +20,7 @@ class DatabaseClusterResolver extends Resolver
             ?? $this->fromInput();
 
         if (! $database) {
-            $this->failAndExit('Unable to resolve database cluster: '.($idOrName ?? 'Provide a valid database cluster ID or name as an argument.'));
+            $this->failAndExit('Unable to resolve database cluster: '.($idOrName ?? 'Provide a valid database cluster ID or name.').'. Run `cloud database-cluster:list --json` to see available clusters.');
         }
 
         $this->displayResolved('Database', $database->name, $database->id);
@@ -52,11 +52,13 @@ class DatabaseClusterResolver extends Resolver
             return $databases->first();
         }
 
-        $this->ensureInteractive('Please provide a database cluster ID or name.');
+        $options = $databases->mapWithKeys(fn ($database) => [$database->id => $database->name])->toArray();
+
+        $this->ensureInteractive('Multiple database clusters found. Provide a database cluster ID or name.', ['options' => $options]);
 
         $selectedDatabase = selectWithContext(
             label: 'Database',
-            options: $databases->mapWithKeys(fn ($database) => [$database->id => $database->name])->toArray(),
+            options: $options,
         );
 
         $this->displayResolved = false;

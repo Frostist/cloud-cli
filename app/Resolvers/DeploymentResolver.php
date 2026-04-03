@@ -23,7 +23,7 @@ class DeploymentResolver extends Resolver
 
         if (! $deployment) {
             if ($id) {
-                $this->failAndExit('Unable to resolve deployment: '.$id);
+                $this->failAndExit('Unable to resolve deployment: '.$id.'. Run `cloud deployment:list --json` to see available deployments.');
             }
 
             return null;
@@ -65,13 +65,15 @@ class DeploymentResolver extends Resolver
             return $deployments->first();
         }
 
-        $this->ensureInteractive('Please provide a deployment ID.');
+        $options = $deployments->mapWithKeys(fn (Deployment $deployment) => [
+            $deployment->id => $deployment->startedAt?->toIso8601String().' ('.str($deployment->commitMessage)->limit(10).')',
+        ])->toArray();
+
+        $this->ensureInteractive('Multiple deployments found. Provide a deployment ID.', ['options' => $options]);
 
         $selection = selectWithContext(
             label: 'Deployment',
-            options: $deployments->mapWithKeys(fn (Deployment $deployment) => [
-                $deployment->id => $deployment->startedAt?->toIso8601String().' ('.str($deployment->commitMessage)->limit(10).')',
-            ])->toArray(),
+            options: $options,
         );
 
         $this->displayResolved = false;

@@ -25,7 +25,7 @@ class CommandResolver extends Resolver
         $command = ($identifier ? $this->fromIdentifier($identifier) : null) ?? $this->fromInput();
 
         if (! $command) {
-            $this->failAndExit('Unable to resolve command: '.($idOrName ?? 'Provide a valid command ID as an argument.'));
+            $this->failAndExit('Unable to resolve command: '.($idOrName ?? 'Provide a valid command ID.').'. Run `cloud command:list --json` to see available commands.');
         }
 
         $this->displayResolved('Command', $command->command, $command->id);
@@ -60,11 +60,13 @@ class CommandResolver extends Resolver
             $this->failAndExit('No commands found for environment '.$environment->name);
         }
 
-        $this->ensureInteractive('Please provide a command ID.');
+        $options = $commands->mapWithKeys(fn ($command) => [$command->id => $command->command])->toArray();
+
+        $this->ensureInteractive('Multiple commands found. Provide a command ID.', ['options' => $options]);
 
         $selectedCommand = selectWithContext(
             label: 'Command',
-            options: $commands->mapWithKeys(fn ($command) => [$command->id => $command->command])->toArray(),
+            options: $options,
         );
 
         // No need to display the resolved application name, it will be displayed from the select above

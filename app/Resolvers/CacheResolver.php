@@ -21,7 +21,7 @@ class CacheResolver extends Resolver
             ?? $this->fromInput();
 
         if (! $cache) {
-            $this->failAndExit('Unable to resolve cache: '.($idOrName ?? 'Provide a valid cache ID or name as an argument.'));
+            $this->failAndExit('Unable to resolve cache: '.($idOrName ?? 'Provide a valid cache ID or name.').'. Run `cloud cache:list --json` to see available caches.');
         }
 
         $this->displayResolved('Cache', $cache->name, $cache->id);
@@ -53,11 +53,13 @@ class CacheResolver extends Resolver
             return $caches->first();
         }
 
-        $this->ensureInteractive('Please provide a cache ID or name.');
+        $options = $caches->mapWithKeys(fn (Cache $cache) => [$cache->id => $cache->name])->toArray();
+
+        $this->ensureInteractive('Multiple caches found. Provide a cache ID or name.', ['options' => $options]);
 
         $selected = selectWithContext(
             label: 'Cache',
-            options: $caches->mapWithKeys(fn (Cache $cache) => [$cache->id => $cache->name])->toArray(),
+            options: $options,
         );
 
         $this->displayResolved = false;

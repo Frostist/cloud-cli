@@ -93,7 +93,7 @@ trait Validates
             throw new RuntimeException($this->errors);
         }
 
-        $this->line($this->errors->toJson());
+        fwrite(STDERR, $this->errors->toJson().PHP_EOL);
 
         throw new CommandExitException(BaseCommand::FAILURE);
     }

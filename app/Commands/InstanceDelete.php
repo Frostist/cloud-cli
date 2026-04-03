@@ -11,7 +11,7 @@ use function Laravel\Prompts\spin;
 
 class InstanceDelete extends BaseCommand
 {
-    protected $signature = 'instance:delete {instance? : The instance ID} {--force : Skip confirmation}';
+    protected $signature = 'instance:delete {instance? : The instance ID} {--force : Skip confirmation} {--json : Output as JSON}';
 
     protected $description = 'Delete an instance';
 
@@ -23,12 +23,10 @@ class InstanceDelete extends BaseCommand
 
         $instance = $this->resolvers()->instance()->from($this->argument('instance'));
 
-        if (! $this->option('force')) {
-            if (! confirm("Delete instance '{$instance->name}'?")) {
-                error('Cancelled');
+        if (! $this->option('force') && ! confirm("Delete instance '{$instance->name}'?", default: false)) {
+            error('Cancelled');
 
-                return self::FAILURE;
-            }
+            return self::FAILURE;
         }
 
         try {
@@ -36,6 +34,8 @@ class InstanceDelete extends BaseCommand
                 fn () => $this->client->instances()->delete($instance->id),
                 'Deleting instance...',
             );
+
+            $this->outputJsonIfWanted('Instance deleted.');
 
             success('Instance deleted');
         } catch (RequestException $e) {

@@ -74,7 +74,7 @@ abstract class BaseCommand extends Command
     protected function outputError(string $message): void
     {
         if ($this->wantsJson()) {
-            $this->line(json_encode(['message' => $message]));
+            fwrite(STDERR, json_encode(['error' => true, 'message' => $message]).PHP_EOL);
         } else {
             error($message);
         }
@@ -153,6 +153,21 @@ abstract class BaseCommand extends Command
         }
 
         return false;
+    }
+
+    protected function writeJsonIfWanted(mixed $data): void
+    {
+        if (! $this->wantsJson()) {
+            return;
+        }
+
+        if (is_string($data)) {
+            $this->line(json_encode(['message' => $data]));
+        } elseif ($data instanceof Jsonable) {
+            $this->line($data->toJson());
+        } else {
+            $this->line(json_encode($data));
+        }
     }
 
     protected function outputJsonIfWanted(mixed $data): void

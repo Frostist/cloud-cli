@@ -20,7 +20,7 @@ class WebSocketClusterResolver extends Resolver
             ?? $this->fromInput();
 
         if (! $cluster) {
-            $this->failAndExit('Unable to resolve WebSocket cluster: '.($idOrName ?? 'Provide a valid cluster ID or name as an argument.'));
+            $this->failAndExit('Unable to resolve WebSocket cluster: '.($idOrName ?? 'Provide a valid cluster ID or name.').'. Run `cloud websocket-cluster:list --json` to see available clusters.');
         }
 
         $this->displayResolved('WebSocket cluster', $cluster->name, $cluster->id);
@@ -52,11 +52,13 @@ class WebSocketClusterResolver extends Resolver
             return $clusters->first();
         }
 
-        $this->ensureInteractive('Please provide a WebSocket cluster ID or name.');
+        $options = $clusters->mapWithKeys(fn (WebsocketCluster $c) => [$c->id => $c->name])->toArray();
+
+        $this->ensureInteractive('Multiple WebSocket clusters found. Provide a WebSocket cluster ID or name.', ['options' => $options]);
 
         $selected = selectWithContext(
             label: 'WebSocket cluster',
-            options: $clusters->mapWithKeys(fn (WebsocketCluster $c) => [$c->id => $c->name])->toArray(),
+            options: $options,
         );
 
         $this->displayResolved = false;

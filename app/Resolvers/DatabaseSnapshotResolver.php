@@ -17,7 +17,7 @@ class DatabaseSnapshotResolver extends Resolver
             ?? $this->fromInput($cluster);
 
         if (! $snapshot) {
-            $this->failAndExit('Unable to resolve snapshot: '.($snapshotIdOrName ?? 'Provide a valid snapshot ID or name as an argument.'));
+            $this->failAndExit('Unable to resolve snapshot: '.($snapshotIdOrName ?? 'Provide a valid snapshot ID or name.').'. Run `cloud database-snapshot:list --json` to see available snapshots.');
         }
 
         $this->displayResolved('Snapshot', $snapshot->name, $snapshot->id);
@@ -45,11 +45,13 @@ class DatabaseSnapshotResolver extends Resolver
             return $snapshots->first();
         }
 
-        $this->ensureInteractive('Please provide a snapshot ID or name.');
+        $options = $snapshots->mapWithKeys(fn (DatabaseSnapshot $s) => [$s->id => $s->name])->toArray();
+
+        $this->ensureInteractive('Multiple snapshots found. Provide a snapshot ID or name.', ['options' => $options]);
 
         $selected = selectWithContext(
             label: 'Snapshot',
-            options: $snapshots->mapWithKeys(fn (DatabaseSnapshot $s) => [$s->id => $s->name])->toArray(),
+            options: $options,
         );
 
         $this->displayResolved = false;

@@ -16,7 +16,7 @@ class BucketKeyResolver extends Resolver
             ?? $this->fromInput($bucket);
 
         if (! $key) {
-            $this->failAndExit('Unable to resolve bucket key: '.($keyIdOrName ?? 'Provide a valid key ID or name as an argument.'));
+            $this->failAndExit('Unable to resolve bucket key: '.($keyIdOrName ?? 'Provide a valid key ID or name.').'. Run `cloud bucket-key:list --json` to see available keys.');
         }
 
         $this->displayResolved('Key', $key->name, $key->id);
@@ -44,11 +44,13 @@ class BucketKeyResolver extends Resolver
             return $keys->first();
         }
 
-        $this->ensureInteractive('Please provide a key ID or name.');
+        $options = $keys->mapWithKeys(fn (BucketKey $k) => [$k->id => $k->name])->toArray();
+
+        $this->ensureInteractive('Multiple keys found. Provide a key ID or name.', ['options' => $options]);
 
         $selected = selectWithContext(
             label: 'Key',
-            options: $keys->mapWithKeys(fn (BucketKey $k) => [$k->id => $k->name])->toArray(),
+            options: $options,
         );
 
         $this->displayResolved = false;

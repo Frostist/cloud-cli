@@ -18,7 +18,7 @@ class BackgroundProcessResolver extends Resolver
             ?? $this->fromInput();
 
         if (! $backgroundProcess) {
-            $this->failAndExit('Unable to resolve background process: '.($idOrName ?? 'Provide a valid background process ID as an argument.'));
+            $this->failAndExit('Unable to resolve background process: '.($idOrName ?? 'Provide a valid background process ID.').'. Run `cloud background-process:list --json` to see available processes.');
         }
 
         $this->displayResolved('Background Process', $backgroundProcess->command, $backgroundProcess->id);
@@ -54,13 +54,15 @@ class BackgroundProcessResolver extends Resolver
             return $backgroundProcesses->first();
         }
 
-        $this->ensureInteractive('Please provide a background process ID.');
+        $options = $backgroundProcesses->mapWithKeys(fn ($backgroundProcess) => [
+            $backgroundProcess->id => str($backgroundProcess->command)->limit(50)->toString(),
+        ])->toArray();
+
+        $this->ensureInteractive('Multiple background processes found. Provide a background process ID.', ['options' => $options]);
 
         $selected = selectWithContext(
             label: 'Background Process',
-            options: $backgroundProcesses->mapWithKeys(fn ($backgroundProcess) => [
-                $backgroundProcess->id => str($backgroundProcess->command)->limit(50)->toString(),
-            ])->toArray(),
+            options: $options,
         );
 
         // No need to display the resolved instance name, it will be displayed from the select above

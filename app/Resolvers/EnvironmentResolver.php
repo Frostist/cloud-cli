@@ -29,7 +29,7 @@ class EnvironmentResolver extends Resolver
         $environment = ($identifier ? $this->fromIdentifier($identifier) : null) ?? $this->fromBranch() ?? $this->fromInput();
 
         if (! $environment) {
-            $this->failAndExit('Unable to resolve environment: '.($idOrName ?? 'Provide a valid environment ID or name as an argument.'));
+            $this->failAndExit('Unable to resolve environment: '.($idOrName ?? 'Provide a valid environment ID or name.').'. Run `cloud environment:list --json` to see available environments.');
         }
 
         if (! $this->fetched) {
@@ -77,11 +77,13 @@ class EnvironmentResolver extends Resolver
             return $envs->first();
         }
 
-        $this->ensureInteractive('Please provide an environment ID or name.');
+        $options = $envs->mapWithKeys(fn ($env) => [$env->id => $env->name])->toArray();
+
+        $this->ensureInteractive('Multiple environments found. Provide an environment ID or name.', ['options' => $options]);
 
         $selectedEnv = selectWithContext(
             label: 'Environment',
-            options: $envs->mapWithKeys(fn ($env) => [$env->id => $env->name])->toArray(),
+            options: $options,
             default: $envs->firstWhere('id', $this->application()->defaultEnvironmentId)?->id,
         );
 

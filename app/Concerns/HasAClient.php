@@ -3,15 +3,20 @@
 namespace App\Concerns;
 
 use App\Client\Connector;
+use App\Commands\Auth;
 use App\ConfigRepository;
 use App\LocalConfig;
+use App\Support\DetectsNonInteractiveEnvironments;
+use Illuminate\Support\Facades\Artisan;
+use RuntimeException;
 
-use function Laravel\Prompts\password;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\spin;
 
 trait HasAClient
 {
+    use DetectsNonInteractiveEnvironments;
+
     protected Connector $client;
 
     protected function ensureClient(bool $ignoreLocalConfig = false)
@@ -42,7 +47,7 @@ trait HasAClient
             return $apiTokens->first();
         }
 
-        if ($apiTokens->containsManyItems()) {
+        if ($apiTokens->hasMany()) {
             $orgs = spin(
                 function () use ($apiTokens) {
                     return $apiTokens->mapWithKeys(function ($token) {
@@ -62,6 +67,10 @@ trait HasAClient
                 }
             }
 
+            if (! stream_isatty(STDIN) || $this->isNonInteractiveEnvironment()) {
+                throw new RuntimeException('Multiple API tokens found. Set organization_id in .cloud/config.json or use `cloud auth:token` to manage tokens.');
+            }
+
             $apiToken = select(
                 label: 'Organization',
                 options: $orgs->mapWithKeys(fn ($organization, $token) => [
@@ -72,18 +81,12 @@ trait HasAClient
             return $apiToken;
         }
 
-        info('No API tokens found.');
-        info('Learn how to create an API token: https://cloud.laravel.com/docs/api/authentication#create-an-api-token');
+        if (! stream_isatty(STDIN) && ! $this->isAgentEnvironment()) {
+            throw new RuntimeException('Not authenticated. Run `cloud auth` or `cloud auth:token --add` to add an API token.');
+        }
 
-        $apiToken = password(
-            label: 'Laravel Cloud API token',
-            required: true,
-        );
+        Artisan::call(Auth::class);
 
-        $config->addApiToken($apiToken);
-
-        info('API token saved to '.$config->path());
-
-        return $apiToken;
+        return $this->resolveApiToken($ignoreLocalConfig);
     }
 }
