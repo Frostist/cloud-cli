@@ -28,7 +28,6 @@ use Carbon\CarbonInterval;
 use Dotenv\Dotenv;
 use Illuminate\Support\Composer;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Sleep;
 use Saloon\Exceptions\Request\RequestException;
 use Throwable;
@@ -177,7 +176,7 @@ class Ship extends BaseCommand
             );
 
             if ($isReady) {
-                Process::run('open '.$environment->url);
+                openUrl($environment->url);
             } else {
                 warning('It looks like there is an error in your deployed site');
 
