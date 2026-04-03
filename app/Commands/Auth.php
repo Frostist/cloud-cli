@@ -103,10 +103,39 @@ class Auth extends BaseCommand implements NoAuthRequired
             return 1;
         }
 
-        foreach ($tokens as $tokenData) {
-            $this->config->addApiToken($tokenData['token']);
+        $newByOrgId = spin(
+            function () use ($tokens) {
+                return collect($tokens)->mapWithKeys(function ($tokenData) {
+                    $client = new Connector($tokenData['token']);
+                    $org = $client->meta()->organization();
 
-            info("✓ Authenticated with {$tokenData['organization_name']}");
+                    return [$org->id => $tokenData['token']];
+                });
+            },
+            'Syncing tokens...',
+        );
+
+        $existingTokens = $this->config->apiTokens();
+
+        if ($existingTokens->isNotEmpty()) {
+            $existingByOrgId = $existingTokens->mapWithKeys(function ($token) {
+                try {
+                    $client = new Connector($token);
+                    $org = $client->meta()->organization();
+
+                    return [$org->id => $token];
+                } catch (SaloonRequestException) {
+                    return [];
+                }
+            })->filter();
+
+            $newByOrgId = $existingByOrgId->merge($newByOrgId);
+        }
+
+        $this->config->setApiTokens($newByOrgId->values());
+
+        foreach ($tokens as $tokenData) {
+            success("Authenticated with <comment>{$tokenData['organization_name']}</comment>");
         }
 
         outro('Authentication successful! Tokens saved to '.$this->config->path());
