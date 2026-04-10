@@ -2,11 +2,9 @@
 
 namespace App\Middleware;
 
-use App\Contracts\NoAuthRequired;
 use App\Prompts\Renderer;
 use App\Prompts\SuppressedOutput;
 use App\Support\DetectsNonInteractiveEnvironments;
-use Illuminate\Support\Facades\Artisan;
 use Laravel\Prompts\Prompt;
 
 class SuppressOutputIfJson implements CommandMiddleware
@@ -22,15 +20,9 @@ class SuppressOutputIfJson implements CommandMiddleware
             return $next();
         }
 
-        $commandClass = Artisan::all()[$command] ?? null;
-
-        if ($commandClass === null || $commandClass instanceof NoAuthRequired) {
-            return $next();
-        }
-
         $args = $_SERVER['argv'] ?? [];
 
-        Renderer::$suppressOutput = collect($args)->intersect(['--json', '--no-interaction'])->isNotEmpty() || $this->isNonInteractiveEnvironment();
+        Renderer::$suppressOutput = collect($args)->intersect(['--json', '--no-interaction', '-n'])->isNotEmpty() || $this->isNonInteractiveEnvironment();
 
         if (Renderer::$suppressOutput) {
             Prompt::setOutput(new SuppressedOutput);
