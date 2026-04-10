@@ -98,6 +98,12 @@ class AuthToken extends BaseCommand implements NoAuthRequired
 
     protected function removeToken(Collection $existingTokens): void
     {
+        if ($existingTokens->isEmpty()) {
+            warning('No API tokens to remove.');
+
+            throw new CommandExitException(self::FAILURE);
+        }
+
         $token = select(
             label: 'Select a token to remove',
             options: $existingTokens,
