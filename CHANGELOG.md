@@ -1,3 +1,93 @@
-# Changelog
+# Release Notes
 
-All notable changes to this project will be documented in this file.
+## [Unreleased](https://github.com/laravel/cloud-cli/compare/v0.2.3...main)
+
+## [v0.2.3](https://github.com/laravel/cloud-cli/compare/v0.2.2...v0.2.3) - 2026-04-20
+
+* Move all packages from `require` to `require-dev` to avoid conflicts on installation by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/144
+
+## [v0.2.2](https://github.com/laravel/cloud-cli/compare/v0.2.1...v0.2.2) - 2026-04-10
+
+* Add `skills:install` command by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/143
+
+## [v0.2.1](https://github.com/laravel/cloud-cli/compare/v0.2.0...v0.2.1) - 2026-04-10
+
+* Allow `tinker` to run non-interactively by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/142
+
+## [v0.2.0](https://github.com/laravel/cloud-cli/compare/v0.1.18...v0.2.0) - 2026-04-10
+
+* Add `tinker` Command by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/141
+* [main] [bug] Catch RequestException instead of Throwable in DatabaseDelete by [@JoshSalway](https://github.com/JoshSalway) in https://github.com/laravel/cloud-cli/pull/138
+* [main] [cleanup] Remove commented-out dead code from EnvironmentVariables by [@JoshSalway](https://github.com/JoshSalway) in https://github.com/laravel/cloud-cli/pull/137
+* [main] [bug] Guard against empty token list in auth:token --remove by [@JoshSalway](https://github.com/JoshSalway) in https://github.com/laravel/cloud-cli/pull/134
+* [main] [bug] Use self::FAILURE constant in InstanceDelete by [@JoshSalway](https://github.com/JoshSalway) in https://github.com/laravel/cloud-cli/pull/133
+* [main] [bug] Remove credential leak in database:open by [@JoshSalway](https://github.com/JoshSalway) in https://github.com/laravel/cloud-cli/pull/132
+* [main] [bug] Fix method typo getWorkerDefult in BackgroundProcessCreate by [@JoshSalway](https://github.com/JoshSalway) in https://github.com/laravel/cloud-cli/pull/131
+* [main] [bug] Fix Saloon RequestException import in 7 delete commands by [@JoshSalway](https://github.com/JoshSalway) in https://github.com/laravel/cloud-cli/pull/104
+
+## [v0.1.18](https://github.com/laravel/cloud-cli/compare/v0.1.17...v0.1.18) - 2026-04-03
+
+* Tell non-interactive users that deploy command is switching to ship by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/129
+
+## [v0.1.17](https://github.com/laravel/cloud-cli/compare/v0.1.16...v0.1.17) - 2026-04-03
+
+* Optimize CLI for AI agents in non-interactive mode by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/118
+* Fix Font::load crash on Windows by [@JoshSalway](https://github.com/JoshSalway) in https://github.com/laravel/cloud-cli/pull/111
+* De-dupe tokens on successful auth by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/119
+* [main] [bug] Fix browser and file manager commands on Windows and Linux by [@JoshSalway](https://github.com/JoshSalway) in https://github.com/laravel/cloud-cli/pull/117
+* Fix TypeError when startedAt is null in monitor renderers by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/120
+* Global `--fields` option to reduce `--json` payload by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/121
+* Monitor commands non-interactively by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/122
+* Better confirm destructive in non interactive mode by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/123
+* Include sent values for errors in non-interactive mode by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/124
+* Update `deploy` description to point towards `ship` for new apps by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/125
+* Added aliases for both human and agent friendly, guessable command names by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/126
+* Fix: undefined index on IP Address table by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/127
+* `deploy` ships in non-interactive mode if no app exists by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/128
+
+## [v0.1.16](https://github.com/laravel/cloud-cli/compare/v0.1.15...v0.1.16) - 2026-03-30
+
+* Upgrade saloonphp/saloon from v3 to v4 by [@pushpak1300](https://github.com/pushpak1300) in https://github.com/laravel/cloud-cli/pull/116
+
+## [v0.1.15](https://github.com/laravel/cloud-cli/compare/v0.1.14...v0.1.15) - 2026-03-16
+
+* Fixed Safari auth flow by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/59
+
+## [v0.1.14](https://github.com/laravel/cloud-cli/compare/v0.1.13...v0.1.14) - 2026-03-12
+
+* Send CLI version by [@mateusjatenee](https://github.com/mateusjatenee) in https://github.com/laravel/cloud-cli/pull/19
+* Don't require an auth token for completions by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/20
+* Better non-interactive mode detection by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/21
+
+## [v0.1.13](https://github.com/laravel/cloud-cli/compare/v0.1.12...v0.1.13) - 2026-03-11
+
+* Makes imports consistent by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/cloud-cli/pull/17
+* PHPStan and CI flow by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/18
+
+## [v0.1.12](https://github.com/laravel/cloud-cli/compare/v0.1.11...v0.1.12) - 2026-03-10
+
+* Detect agent and terminal by [@mateusjatenee](https://github.com/mateusjatenee) in https://github.com/laravel/cloud-cli/pull/12
+* Composer update by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/15
+* Fix: RepoConfig select LazyCollection error by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/16
+
+## [v0.1.11](https://github.com/laravel/cloud-cli/compare/v0.1.10...v0.1.11) - 2026-03-02
+
+## [v0.1.10](https://github.com/laravel/cloud-cli/compare/v0.1.9...v0.1.10) - 2026-03-02
+
+## [v0.1.9](https://github.com/laravel/cloud-cli/compare/v0.1.8...v0.1.9) - 2026-03-02
+
+## [v0.1.8](https://github.com/laravel/cloud-cli/compare/v0.1.7...v0.1.8) - 2026-03-02
+
+## [v0.1.7](https://github.com/laravel/cloud-cli/compare/v0.1.6...v0.1.7) - 2026-03-02
+
+## [v0.1.6](https://github.com/laravel/cloud-cli/compare/v0.1.5...v0.1.6) - 2026-03-02
+
+## [v0.1.5](https://github.com/laravel/cloud-cli/compare/v0.1.4...v0.1.5) - 2026-03-02
+
+## [v0.1.4](https://github.com/laravel/cloud-cli/compare/v0.1.3...v0.1.4) - 2026-03-02
+
+## [v0.1.3](https://github.com/laravel/cloud-cli/compare/v0.1.2...v0.1.3) - 2026-03-02
+
+## v0.1.2 - 2026-03-02
+
+Initial release.
