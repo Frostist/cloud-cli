@@ -1,6 +1,15 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/cloud-cli/compare/v0.2.3...main)
+## [Unreleased](https://github.com/laravel/cloud-cli/compare/v0.2.4...main)
+
+## [v0.2.4](https://github.com/laravel/cloud-cli/compare/v0.2.3...v0.2.4) - 2026-04-20
+
+### What's Changed
+
+* Removed redundant null coalesce by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/145
+* Added install skills middleware by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/146
+
+**Full Changelog**: https://github.com/laravel/cloud-cli/compare/v0.2.3...v0.2.4
 
 ## [v0.2.3](https://github.com/laravel/cloud-cli/compare/v0.2.2...v0.2.3) - 2026-04-20
 
