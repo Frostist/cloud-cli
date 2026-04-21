@@ -243,8 +243,6 @@ Many commands accept an optional resource ID/name and support `--json` for machi
 | `cloud billing:usage --period=1` | View a previous billing period (0=current, max 3) |
 | `cloud billing:usage --environment=<id>` | Filter usage by environment |
 
-All billing commands support `--json` for machine-readable output.
-
 ### Other
 
 | Command | Description |
