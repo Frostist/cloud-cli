@@ -57,7 +57,7 @@ class BillingUsage extends BaseCommand
             'Last Updated' => $usage->lastUpdatedAt?->format('Y-m-d H:i:s') ?? '—',
         ]);
 
-        if (! $this->option('detailed')) {
+        if (! $this->option('detailed') && ! $environmentId) {
             return self::SUCCESS;
         }
 
@@ -91,6 +91,20 @@ class BillingUsage extends BaseCommand
             dataTable(
                 headers: ['Type', 'Name', 'Cost'],
                 rows: $resourceRows,
+            );
+        }
+
+        if (! empty($usage->environmentUsageItems)) {
+            info('Environment Usage');
+            dataTable(
+                headers: ['Identifier', 'Type', 'Profile', 'CPU Hours', 'Cost'],
+                rows: collect($usage->environmentUsageItems)->map(fn ($item) => [
+                    $item['identifier'] ?? '—',
+                    $item['type'] ?? '—',
+                    trim(($item['compute_profile'] ?? '').' '.($item['compute_description'] ?? '')),
+                    number_format($item['cpu_hours'] ?? 0, 2),
+                    $usage->formatCents($item['total_cents'] ?? 0),
+                ])->toArray(),
             );
         }
 
