@@ -1,6 +1,19 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/cloud-cli/compare/v0.2.4...main)
+## [Unreleased](https://github.com/laravel/cloud-cli/compare/v0.2.5...main)
+
+## [v0.2.5](https://github.com/laravel/cloud-cli/compare/v0.2.4...v0.2.5) - 2026-04-21
+
+### What's Changed
+
+* Attach database, cache, and WebSocket app via environment:update by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/147
+* Accept bucket arg on bucket-key:delete and bucket-key:update by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/148
+* Return SUCCESS when list commands find no results by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/149
+* Fix websocket-cluster:create in non-interactive mode by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/150
+* Fix websocket-application:create in non-interactive mode by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/151
+* Fix instance:create in non-interactive mode by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/152
+
+**Full Changelog**: https://github.com/laravel/cloud-cli/compare/v0.2.4...v0.2.5
 
 ## [v0.2.4](https://github.com/laravel/cloud-cli/compare/v0.2.3...v0.2.4) - 2026-04-20
 
