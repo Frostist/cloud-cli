@@ -82,7 +82,7 @@ class BillingUsage extends BaseCommand
             ->flatMap(fn ($r) => collect($r['items'])->map(fn ($item) => [
                 $r['type'],
                 $item['name'] ?? $item['id'] ?? '—',
-                $usage->formatCents($item['cost_cents'] ?? 0),
+                $usage->formatCents($item['total_cents'] ?? 0),
             ]))
             ->toArray();
 
