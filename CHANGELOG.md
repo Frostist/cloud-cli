@@ -1,6 +1,14 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/cloud-cli/compare/v0.2.5...main)
+## [Unreleased](https://github.com/laravel/cloud-cli/compare/v0.2.6...main)
+
+## [v0.2.6](https://github.com/laravel/cloud-cli/compare/v0.2.5...v0.2.6) - 2026-04-28
+
+### What's Changed
+
+* Mask environment variable values in JSON output by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/155
+
+**Full Changelog**: https://github.com/laravel/cloud-cli/compare/v0.2.5...v0.2.6
 
 ## [v0.2.5](https://github.com/laravel/cloud-cli/compare/v0.2.4...v0.2.5) - 2026-04-21
 
