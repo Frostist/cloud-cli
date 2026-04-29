@@ -45,14 +45,14 @@ class Usage extends BaseCommand
             default => "{$period} periods ago",
         };
 
-        $bandwidthLine = $usage->bandwidthAllowanceBytes > 0
-            ? sprintf(
+        $bandwidthLine = $usage->bandwidthAllowanceBytes === 0
+            ? '-'
+            : sprintf(
                 '%d%% of %s%s',
                 $usage->bandwidthUsagePercentage,
                 $usage->formatBytes($usage->bandwidthAllowanceBytes),
                 $usage->bandwidthCostCents > 0 ? ' ('.$usage->formatCents($usage->bandwidthCostCents).')' : '',
-            )
-            : '-';
+            );
 
         dataList(array_filter([
             'Period' => $periodLabel,
@@ -70,20 +70,28 @@ class Usage extends BaseCommand
             return self::SUCCESS;
         }
 
-        if (! empty($usage->applications)) {
+        if ($usage->applications !== []) {
             $allApplications = spin(
                 fn () => $this->client->applications()->list()->collect()->collect()->keyBy('id')->mapWithKeys(fn ($app) => [$app->id => $app->name]),
                 'Fetching application details...',
             );
 
-            info('Applications '.$this->dim(Formatter::centsToDollars(collect($usage->applications)->sum('total_cost_cents'))));
+            $this->totalsHeader('Applications', $usage->applicationsTotalCostCents);
 
             table(
                 headers: ['Name', 'Cost'],
-                rows: collect($usage->applications)->sortBy('total_cost_cents')->values()->map(fn ($app, $i) => [
-                    ($allApplications->get($app['identifier']) ?? $app['identifier'])."\n".$this->dim(str($app['identifier'])->limit(20)).($i === count($usage->applications) - 1 ? '' : "\n"),
-                    $this->formatTotal($app['total_cost_cents'] ?? 0),
-                ])->toArray(),
+                rows: collect($usage->applications)
+                    ->sortBy('total_cost_cents')
+                    ->values()
+                    ->map(fn ($app, $i) => [
+                        $this->dataWithSubText(
+                            $allApplications->get($app['identifier']) ?? $app['identifier'],
+                            $app['identifier'],
+                            $i === count($usage->applications) - 1,
+                        ),
+                        $this->formatTotal($app['total_cost_cents']),
+                    ])
+                    ->toArray(),
             );
         }
 
@@ -92,7 +100,7 @@ class Usage extends BaseCommand
         $this->renderBucketUsage($usage->buckets);
         $this->renderWebsocketUsage($usage->websockets);
 
-        if (! empty($usage->environmentUsageItems)) {
+        if ($usage->environmentUsageItems !== []) {
             info('Environment Usage');
 
             table(
@@ -107,7 +115,7 @@ class Usage extends BaseCommand
             );
         }
 
-        if (! empty($usage->addonItems)) {
+        if ($usage->addonItems !== []) {
             info('Add-ons');
 
             table(
@@ -128,7 +136,7 @@ class Usage extends BaseCommand
             return;
         }
 
-        info('Databases '.$this->dim(Formatter::centsToDollars(collect($databases)->sum('total_cents'))));
+        $this->totalsHeader('Databases', collect($databases)->sum('total_cents'));
 
         table(
             headers: [
@@ -140,12 +148,25 @@ class Usage extends BaseCommand
                 'Total',
             ],
             rows: collect($databases)->map(fn ($item, $i) => [
-                $item['name']."\n".$this->dim(str($item['identifier'])->limit(20)),
-                wordwrap($item['type'], 20, "\n").($i === count($databases) - 1 ? '' : "\n"),
-                $this->formatTotal($item['storage_cents'] ?? 0)."\n".$this->dim(Formatter::gigabyte($item['storage_gb'] ?? 0)),
-                $this->formatTotal($item['compute_cents'] ?? 0)."\n".$this->dim(round($item['compute_units'] ?? 0, 1).' '.$item['compute_unit_label']),
-                $this->formatTotal($item['backups_cents'] ?? 0)."\n".$this->dim(Formatter::gigabyte($item['backups_gb'] ?? 0)),
-                $this->formatTotal($item['total_cents'] ?? 0),
+                $this->dataWithSubText(
+                    $item['name'],
+                    $item['identifier'],
+                    $i === count($databases) - 1,
+                ),
+                wordwrap($item['type'], 20, "\n"),
+                $this->totalWithSubText(
+                    $item['storage_cents'],
+                    Formatter::gigabyte($item['storage_gb']),
+                ),
+                $this->totalWithSubText(
+                    $item['compute_cents'],
+                    round($item['compute_units'], 1).' '.$item['compute_unit_label'],
+                ),
+                $this->totalWithSubText(
+                    $item['backups_cents'],
+                    Formatter::gigabyte($item['backups_gb'] ?? 0),
+                ),
+                $this->formatTotal($item['total_cents']),
             ])->toArray(),
         );
     }
@@ -156,7 +177,7 @@ class Usage extends BaseCommand
             return;
         }
 
-        info('Caches '.$this->dim(Formatter::centsToDollars(collect($caches)->sum('total_cents'))));
+        $this->totalsHeader('Caches', collect($caches)->sum('total_cents'));
 
         table(
             headers: [
@@ -167,11 +188,18 @@ class Usage extends BaseCommand
                 'Total',
             ],
             rows: collect($caches)->map(fn ($item, $i) => [
-                $item['name']."\n".$this->dim(str($item['identifier'])->limit(20)),
-                wordwrap($item['type'], 20, "\n").($i === count($caches) - 1 ? '' : "\n"),
-                $this->formatTotal($item['storage_cents'] ?? 0)."\n".$this->dim(Formatter::gigabyte($item['storage_gb'] ?? 0)),
-                $this->formatTotal($item['compute_cents'] ?? 0)."\n".$this->dim(str('hour')->plural($item['compute_hours'] ?? 0, true)),
-                $this->formatTotal($item['total_cents'] ?? 0),
+                $this->dataWithSubText(
+                    $item['name'],
+                    $item['identifier'],
+                    $i === count($caches) - 1,
+                ),
+                wordwrap($item['type'], 20, "\n"),
+                $this->dim($item['storage']),
+                $this->totalWithSubText(
+                    $item['compute_cents'],
+                    str('hour')->plural($item['compute_hours'], true),
+                ),
+                $this->formatTotal($item['total_cents']),
             ])->toArray(),
         );
     }
@@ -182,7 +210,7 @@ class Usage extends BaseCommand
             return;
         }
 
-        info('Buckets '.$this->dim(Formatter::centsToDollars(collect($buckets)->sum('total_cents'))));
+        $this->totalsHeader('Buckets', collect($buckets)->sum('total_cents'));
 
         table(
             headers: [
@@ -194,10 +222,19 @@ class Usage extends BaseCommand
             ],
             rows: collect($buckets)->map(fn ($item, $i) => [
                 $item['name']."\n".$this->dim(str($item['identifier'])->limit(20)).($i === count($buckets) - 1 ? '' : "\n"),
-                $this->formatTotal($item['class_a_requests_cents'] ?? 0)."\n".$this->dim(str('request')->plural($item['class_a_requests_count'] ?? 0, true)),
-                $this->formatTotal($item['class_b_requests_cents'] ?? 0)."\n".$this->dim(str('request')->plural($item['class_b_requests_count'] ?? 0, true)),
-                $this->formatTotal($item['storage_cents'] ?? 0)."\n".$this->dim(Formatter::gigabyte($item['storage_gb'] ?? 0)),
-                $this->formatTotal($item['total_cents'] ?? 0),
+                $this->totalWithSubText(
+                    $item['class_a_requests_cents'],
+                    str('request')->plural($item['class_a_requests_count'], true),
+                ),
+                $this->totalWithSubText(
+                    $item['class_b_requests_cents'],
+                    str('request')->plural($item['class_b_requests_count'], true),
+                ),
+                $this->totalWithSubText(
+                    $item['storage_cents'],
+                    Formatter::gigabyte($item['storage_gb']),
+                ),
+                $this->formatTotal($item['total_cents']),
             ])->toArray(),
         );
     }
@@ -208,7 +245,7 @@ class Usage extends BaseCommand
             return;
         }
 
-        info('Buckets '.$this->dim(Formatter::centsToDollars(collect($websockets)->sum('total_cents'))));
+        $this->totalsHeader('Websockets', collect($websockets)->sum('total_cents'));
 
         table(
             headers: [
@@ -218,16 +255,40 @@ class Usage extends BaseCommand
                 'Total',
             ],
             rows: collect($websockets)->map(fn ($item, $i) => [
-                $item['name']."\n".$this->dim(str($item['identifier'])->limit(20)).($i === count($websockets) - 1 ? '' : "\n"),
+                $this->dataWithSubText(
+                    $item['name'],
+                    $item['identifier'],
+                    $i === count($websockets) - 1,
+                ),
                 $this->dim($item['max_connections']),
-                $this->formatTotal($item['usage_time_cents'] ?? 0)."\n".$this->dim(str('hours')->plural($item['usage_time_hours'] ?? 0, true)),
+                $this->totalWithSubText(
+                    $item['usage_time_cents'],
+                    str('hour')->plural($item['usage_time_hours'], true),
+                ),
                 $this->formatTotal($item['total_cents'] ?? 0),
             ])->toArray(),
         );
     }
 
-    protected function formatTotal(int $cents): string
+    protected function totalsHeader(string $title, int $totalCents): void
     {
+        info($title.' '.$this->dim(Formatter::centsToDollars($totalCents)));
+    }
+
+    protected function totalWithSubText(?int $cents, string $subText): string
+    {
+        return $this->formatTotal($cents ?? 0)."\n".$this->dim($subText);
+    }
+
+    protected function dataWithSubText(string $text, string $subText, bool $isLast = false): string
+    {
+        return $text."\n".$this->dim(str($subText)->limit(20)).($isLast ? '' : "\n");
+    }
+
+    protected function formatTotal(?int $cents): string
+    {
+        $cents ??= 0;
+
         $formatted = Formatter::centsToDollars($cents);
 
         if ($cents === 0) {
