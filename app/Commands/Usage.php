@@ -15,7 +15,7 @@ class Usage extends BaseCommand
 
     protected $signature = 'usage
                             {--period=0 : Usage period offset (0=current, 1=previous, etc.)}
-                            {--environment= : Filter usage by environment ID}
+                            {--environment= : Filter usage by environment ID or name}
                             {--detailed : Show full breakdown with per-resource and per-application tables}';
 
     protected $description = 'View billing and usage for the current organization';
@@ -27,7 +27,9 @@ class Usage extends BaseCommand
         intro('Usage');
 
         $period = (int) $this->option('period');
-        $environmentId = $this->option('environment');
+        $environmentId = $this->option('environment')
+            ? $this->resolvers()->environment()->from($this->option('environment'))->id
+            : null;
 
         $usage = spin(
             fn () => $this->client->usage()->get($period, $environmentId),
