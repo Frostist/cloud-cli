@@ -4,7 +4,7 @@ namespace App\Support;
 
 class Formatter
 {
-    public static function cents(int $cents): string
+    public static function centsToDollars(int $cents): string
     {
         return '$'.number_format($cents / 100, 2);
     }
@@ -20,5 +20,10 @@ class Formatter
         }
 
         return round($bytes, 2).' '.$units[$i];
+    }
+
+    public static function gigabyte(int|float $gigabytes): string
+    {
+        return round($gigabytes, 1).' GB';
     }
 }
