@@ -2,7 +2,7 @@
 
 namespace App\Client\Resources\Usage;
 
-use App\Dto\BillingUsage;
+use App\Dto\Usage;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
 use Saloon\Http\Response;
@@ -34,8 +34,8 @@ class GetUsageRequest extends Request
         return $query;
     }
 
-    public function createDtoFromResponse(Response $response): BillingUsage
+    public function createDtoFromResponse(Response $response): Usage
     {
-        return BillingUsage::createFromResponse($response->json());
+        return Usage::createFromResponse($response->json());
     }
 }

@@ -2,7 +2,8 @@
 
 namespace App\Commands;
 
-use App\Dto\Usage as BillingUsageDto;
+use App\Dto\Usage as UsageDto;
+use App\Support\Formatter;
 
 use function Laravel\Prompts\info;
 use function Laravel\Prompts\intro;
@@ -10,10 +11,10 @@ use function Laravel\Prompts\spin;
 
 class Usage extends BaseCommand
 {
-    protected ?string $jsonDataClass = BillingUsageDto::class;
+    protected ?string $jsonDataClass = UsageDto::class;
 
-    protected $signature = 'billing:usage
-                            {--period=0 : Billing period offset (0=current, 1=previous, etc.)}
+    protected $signature = 'usage
+                            {--period=0 : Usage period offset (0=current, 1=previous, etc.)}
                             {--environment= : Filter usage by environment ID}
                             {--detailed : Show full breakdown with per-resource and per-application tables}';
 
@@ -23,14 +24,14 @@ class Usage extends BaseCommand
     {
         $this->ensureClient();
 
-        intro('Billing Usage');
+        intro('Usage');
 
         $period = (int) $this->option('period');
         $environmentId = $this->option('environment');
 
         $usage = spin(
             fn () => $this->client->usage()->get($period, $environmentId),
-            'Fetching billing usage...',
+            'Fetching usage...',
         );
 
         $this->outputJsonIfWanted($usage);
@@ -42,17 +43,22 @@ class Usage extends BaseCommand
         };
 
         $bandwidthLine = $usage->bandwidthAllowanceBytes > 0
-            ? $usage->bandwidthUsagePercentage.'% of '.$usage->formatBytes($usage->bandwidthAllowanceBytes).($usage->bandwidthCostCents > 0 ? ' ('.$usage->formatCents($usage->bandwidthCostCents).')' : '')
-            : '—';
+            ? sprintf(
+                '%d%% of %s%s',
+                $usage->bandwidthUsagePercentage,
+                $usage->formatBytes($usage->bandwidthAllowanceBytes),
+                $usage->bandwidthCostCents > 0 ? ' ('.$usage->formatCents($usage->bandwidthCostCents).')' : '',
+            )
+            : '-';
 
         dataList([
             'Period' => $periodLabel,
-            'Total Spend' => $usage->formatCents($usage->currentSpendCents),
+            'Total Spend' => Formatter::cents($usage->currentSpendCents),
             'Bandwidth' => $bandwidthLine,
-            'Credits Applied' => $usage->formatCents($usage->creditsUsedCents).' of '.$usage->formatCents($usage->creditsTotalCents),
-            'Resources' => $usage->formatCents($usage->resourcesTotalCostCents),
-            'Add-ons' => $usage->formatCents($usage->addonsTotalCostCents),
-            'Applications' => $usage->formatCents($usage->applicationsTotalCostCents).' ('.($usage->applicationCount).' '.str('app')->plural($usage->applicationCount).')',
+            'Credits Applied' => Formatter::cents($usage->creditsUsedCents).' of '.Formatter::cents($usage->creditsTotalCents),
+            'Resources' => Formatter::cents($usage->resourcesTotalCostCents),
+            'Add-ons' => Formatter::cents($usage->addonsTotalCostCents),
+            'Applications' => Formatter::cents($usage->applicationsTotalCostCents).' ('.($usage->applicationCount).' '.str('app')->plural($usage->applicationCount).')',
             'Currency' => $usage->currency,
             'Last Updated' => $usage->lastUpdatedAt?->format('Y-m-d H:i:s') ?? '—',
         ]);
@@ -63,11 +69,12 @@ class Usage extends BaseCommand
 
         if (! empty($usage->applications)) {
             info('Applications');
+
             dataTable(
                 headers: ['Name', 'Cost'],
                 rows: collect($usage->applications)->map(fn ($app) => [
                     $app['identifier'] ?? '—',
-                    $usage->formatCents($app['total_cost_cents'] ?? 0),
+                    Formatter::cents($app['total_cost_cents'] ?? 0),
                 ])->toArray(),
             );
         }
@@ -82,7 +89,7 @@ class Usage extends BaseCommand
             ->flatMap(fn ($r) => collect($r['items'])->map(fn ($item) => [
                 $r['type'],
                 $item['name'] ?? $item['id'] ?? '—',
-                $usage->formatCents($item['total_cents'] ?? 0),
+                Formatter::cents($item['total_cents'] ?? 0),
             ]))
             ->toArray();
 
@@ -103,7 +110,7 @@ class Usage extends BaseCommand
                     $item['type'] ?? '—',
                     trim(($item['compute_profile'] ?? '').' '.($item['compute_description'] ?? '')),
                     number_format($item['cpu_hours'] ?? 0, 2),
-                    $usage->formatCents($item['total_cents'] ?? 0),
+                    Formatter::cents($item['total_cents'] ?? 0),
                 ])->toArray(),
             );
         }
@@ -114,7 +121,7 @@ class Usage extends BaseCommand
                 headers: ['Name', 'Cost'],
                 rows: collect($usage->addonItems)->map(fn ($item) => [
                     $item['name'] ?? $item['id'] ?? '—',
-                    $usage->formatCents($item['total_cents'] ?? 0),
+                    Formatter::cents($item['total_cents'] ?? 0),
                 ])->toArray(),
             );
         }
