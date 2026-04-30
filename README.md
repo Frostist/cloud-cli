@@ -239,12 +239,12 @@ Many commands accept an optional resource ID/name and support `--json` for machi
 
 ### Billing & usage
 
-| Command                                  | Description                                                  |
-| ---------------------------------------- | ------------------------------------------------------------ |
-| `cloud billing:usage`                    | View billing summary for the current period                  |
-| `cloud billing:usage --detailed`         | Full breakdown with per-app, per-resource, and add-on tables |
-| `cloud billing:usage --period=1`         | View a previous billing period (0=current, max 3)            |
-| `cloud billing:usage --environment=<id>` | Filter usage by environment                                  |
+| Command                          | Description                                                  |
+| -------------------------------- | ------------------------------------------------------------ |
+| `cloud usage`                    | View billing summary for the current period                  |
+| `cloud usage --detailed`         | Full breakdown with per-app, per-resource, and add-on tables |
+| `cloud usage --period=1`         | View a previous billing period (0=current, max 3)            |
+| `cloud usage --environment=<id>` | Filter usage by environment                                  |
 
 ### Other
 
