@@ -237,7 +237,7 @@ Many commands accept an optional resource ID/name and support `--json` for machi
 | `cloud command:get`  | Get command details              |
 | `cloud command:run`  | Run a command on an environment  |
 
-### Billing & usage
+### Usage
 
 | Command                          | Description                                                  |
 | -------------------------------- | ------------------------------------------------------------ |

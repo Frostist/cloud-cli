@@ -66,23 +66,8 @@ class Usage extends BaseCommand
             'Last Updated' => $usage->lastUpdatedAt?->format('Y-m-d H:i:s') ?? '—',
         ], fn ($value) => $value !== null));
 
-        if ($usage->environmentUsageItems !== []) {
-            $this->totalsHeader('Environment Usage', $usage->environmentUsageTotalCostCents);
-
-            table(
-                headers: ['Identifier', 'Type', 'Profile', 'CPU Hours', 'Cost'],
-                rows: collect($usage->environmentUsageItems)->map(fn ($item, $i) => [
-                    $item['identifier'],
-                    $item['type'],
-                    $this->dataWithSubText(
-                        $item['compute_profile'],
-                        $item['compute_description'],
-                        $i === count($usage->environmentUsageItems) - 1,
-                    ),
-                    number_format($item['cpu_hours'], 2),
-                    $this->formatTotal($item['total_cents']),
-                ])->toArray(),
-            );
+        if ($environmentId || $this->option('detailed')) {
+            $this->renderEnvironmentUsage($usage);
         }
 
         if (! $this->option('detailed')) {
@@ -97,6 +82,30 @@ class Usage extends BaseCommand
         $this->renderAddonUsage($usage);
 
         return self::SUCCESS;
+    }
+
+    protected function renderEnvironmentUsage(UsageDto $usage): void
+    {
+        if ($usage->environmentUsageItems === []) {
+            return;
+        }
+
+        $this->totalsHeader('Environment Usage', $usage->environmentUsageTotalCostCents);
+
+        table(
+            headers: ['Identifier', 'Type', 'Profile', 'CPU Hours', 'Cost'],
+            rows: collect($usage->environmentUsageItems)->map(fn ($item, $i) => [
+                $item['identifier'],
+                $item['type'],
+                $this->dataWithSubText(
+                    $item['compute_profile'],
+                    $item['compute_description'],
+                    $i === count($usage->environmentUsageItems) - 1,
+                ),
+                number_format($item['cpu_hours'], 2),
+                $this->formatTotal($item['total_cents']),
+            ])->toArray(),
+        );
     }
 
     protected function renderApplicationUsage(UsageDto $usage): void
