@@ -3,6 +3,10 @@
 namespace App\Commands;
 
 use App\Dto\Usage as UsageDto;
+use App\Dto\UsageBucket;
+use App\Dto\UsageCache;
+use App\Dto\UsageDatabase;
+use App\Dto\UsageWebsocket;
 use App\Support\Formatter;
 
 use function Laravel\Prompts\info;
@@ -45,20 +49,20 @@ class Usage extends BaseCommand
             default => "{$period} periods ago",
         };
 
-        $bandwidthLine = $usage->bandwidthAllowanceBytes === 0
+        $bandwidthLine = $usage->bandwidth === null
             ? '-'
             : sprintf(
                 '%d%% of %s%s',
-                $usage->bandwidthUsagePercentage,
-                Formatter::bytes($usage->bandwidthAllowanceBytes),
-                $usage->bandwidthCostCents > 0 ? ' ('.Formatter::centsToDollars($usage->bandwidthCostCents).')' : '',
+                $usage->bandwidth->usagePercentage,
+                Formatter::bytes($usage->bandwidth->allowanceBytes),
+                $usage->bandwidth->costCents > 0 ? ' ('.Formatter::centsToDollars($usage->bandwidth->costCents).')' : '',
             );
 
         dataList(array_filter([
             'Period' => $periodLabel,
             'Total Spend' => Formatter::centsToDollars($usage->currentSpendCents),
-            'Credits Applied' => $usage->creditsTotalCents === 0 ? null : Formatter::centsToDollars($usage->creditsUsedCents).' of '.Formatter::centsToDollars($usage->creditsTotalCents),
-            'Applications' => Formatter::centsToDollars($usage->applicationsTotalCostCents).' ('.($usage->applicationCount).' '.str('app')->plural($usage->applicationCount).')',
+            'Credits Applied' => $usage->credits === null ? null : Formatter::centsToDollars($usage->credits->usedCents).' of '.Formatter::centsToDollars($usage->credits->totalCents),
+            'Applications' => Formatter::centsToDollars($usage->applicationsTotalCostCents).' ('.$usage->applicationCount.' '.str('app')->plural($usage->applicationCount).')',
             'Resources' => Formatter::centsToDollars($usage->resourcesTotalCostCents),
             'Add-ons' => Formatter::centsToDollars($usage->addonsTotalCostCents),
             'Currency' => $usage->currency,
@@ -95,15 +99,15 @@ class Usage extends BaseCommand
         table(
             headers: ['Identifier', 'Type', 'Profile', 'CPU Hours', 'Cost'],
             rows: collect($usage->environmentUsageItems)->map(fn ($item, $i) => [
-                $item['identifier'],
-                $item['type'],
+                $item->identifier,
+                $item->type,
                 $this->dataWithSubText(
-                    $item['compute_profile'],
-                    $item['compute_description'],
+                    $item->computeProfile,
+                    $item->computeDescription,
                     $i === count($usage->environmentUsageItems) - 1,
                 ),
-                number_format($item['cpu_hours'], 2),
-                $this->formatTotal($item['total_cents']),
+                number_format($item->cpuHours, 2),
+                $this->formatTotal($item->totalCents),
             ])->toArray(),
         );
     }
@@ -114,25 +118,28 @@ class Usage extends BaseCommand
             return;
         }
 
-        $allApplications = spin(
-            fn () => $this->client->applications()->list()->collect()->collect()->keyBy('id')->mapWithKeys(fn ($app) => [$app->id => $app->name]),
+        $this->totalsHeader('Applications', $usage->applicationsTotalCostCents);
+
+        $applicationNames = spin(
+            fn () => $this->client->applications()->list()->collect()->collect()->pluck('name', 'id'),
             'Fetching application details...',
         );
-
-        $this->totalsHeader('Applications', $usage->applicationsTotalCostCents);
 
         table(
             headers: ['Name', 'Cost'],
             rows: collect($usage->applications)
-                ->sortBy('total_cost_cents')
+                ->sortBy([
+                    fn ($a, $b) => $a->totalCostCents <=> $b->totalCostCents,
+                    fn ($a, $b) => $applicationNames->get($a->identifier) <=> $applicationNames->get($b->identifier),
+                ])
                 ->values()
                 ->map(fn ($app, $i) => [
                     $this->dataWithSubText(
-                        $allApplications->get($app['identifier']) ?? $app['identifier'],
-                        $app['identifier'],
+                        $applicationNames->get($app->identifier) ?? $app->identifier,
+                        $app->identifier,
                         $i === count($usage->applications) - 1,
                     ),
-                    $this->formatTotal($app['total_cost_cents']),
+                    $this->formatTotal($app->totalCostCents),
                 ])
                 ->toArray(),
         );
@@ -149,19 +156,22 @@ class Usage extends BaseCommand
         table(
             headers: ['Name', 'Cost'],
             rows: collect($usage->addonItems)->map(fn ($item) => [
-                $item['name'],
-                $this->formatTotal($item['total_cents']),
+                $item->name,
+                $this->formatTotal($item->totalCents),
             ])->toArray(),
         );
     }
 
+    /**
+     * @param  list<UsageDatabase>  $databases
+     */
     protected function renderDatabaseUsage(array $databases): void
     {
         if ($databases === []) {
             return;
         }
 
-        $this->totalsHeader('Databases', collect($databases)->sum('total_cents'));
+        $this->totalsHeader('Databases', collect($databases)->sum('totalCents'));
 
         table(
             headers: [
@@ -174,35 +184,38 @@ class Usage extends BaseCommand
             ],
             rows: collect($databases)->map(fn ($item, $i) => [
                 $this->dataWithSubText(
-                    $item['name'],
-                    $item['identifier'],
+                    $item->name,
+                    $item->identifier,
                     $i === count($databases) - 1,
                 ),
-                wordwrap($item['type'], 20, "\n"),
+                wordwrap($item->type, 20, "\n"),
                 $this->totalWithSubText(
-                    $item['storage_cents'],
-                    Formatter::gigabyte($item['storage_gb']),
+                    $item->storageCents,
+                    Formatter::gigabyte($item->storageGb),
                 ),
                 $this->totalWithSubText(
-                    $item['compute_cents'],
-                    round($item['compute_units'], 1).' '.$item['compute_unit_label'],
+                    $item->computeCents,
+                    round($item->computeUnits, 1).' '.$item->computeUnitLabel,
                 ),
                 $this->totalWithSubText(
-                    $item['backups_cents'],
-                    Formatter::gigabyte($item['backups_gb'] ?? 0),
+                    $item->backupsCents,
+                    Formatter::gigabyte($item->backupsGb),
                 ),
-                $this->formatTotal($item['total_cents']),
+                $this->formatTotal($item->totalCents),
             ])->toArray(),
         );
     }
 
+    /**
+     * @param  list<UsageCache>  $caches
+     */
     protected function renderCacheUsage(array $caches): void
     {
         if ($caches === []) {
             return;
         }
 
-        $this->totalsHeader('Caches', collect($caches)->sum('total_cents'));
+        $this->totalsHeader('Caches', collect($caches)->sum('totalCents'));
 
         table(
             headers: [
@@ -214,28 +227,31 @@ class Usage extends BaseCommand
             ],
             rows: collect($caches)->map(fn ($item, $i) => [
                 $this->dataWithSubText(
-                    $item['name'],
-                    $item['identifier'],
+                    $item->name,
+                    $item->identifier,
                     $i === count($caches) - 1,
                 ),
-                wordwrap($item['type'], 20, "\n"),
-                $this->dim($item['storage']),
+                wordwrap($item->type, 20, "\n"),
+                $this->dim($item->storage),
                 $this->totalWithSubText(
-                    $item['compute_cents'],
-                    str('hour')->plural($item['compute_hours'], true),
+                    $item->computeCents,
+                    str('hour')->plural($item->computeHours, true),
                 ),
-                $this->formatTotal($item['total_cents']),
+                $this->formatTotal($item->totalCents),
             ])->toArray(),
         );
     }
 
+    /**
+     * @param  list<UsageBucket>  $buckets
+     */
     protected function renderBucketUsage(array $buckets): void
     {
         if ($buckets === []) {
             return;
         }
 
-        $this->totalsHeader('Buckets', collect($buckets)->sum('total_cents'));
+        $this->totalsHeader('Buckets', collect($buckets)->sum('totalCents'));
 
         table(
             headers: [
@@ -246,31 +262,38 @@ class Usage extends BaseCommand
                 'Total',
             ],
             rows: collect($buckets)->map(fn ($item, $i) => [
-                $item['name']."\n".$this->dim(str($item['identifier'])->limit(20)).($i === count($buckets) - 1 ? '' : "\n"),
-                $this->totalWithSubText(
-                    $item['class_a_requests_cents'],
-                    str('request')->plural($item['class_a_requests_count'], true),
+                $this->dataWithSubText(
+                    $item->name,
+                    $item->identifier,
+                    $i === count($buckets) - 1,
                 ),
                 $this->totalWithSubText(
-                    $item['class_b_requests_cents'],
-                    str('request')->plural($item['class_b_requests_count'], true),
+                    $item->classARequestsCents,
+                    str('request')->plural($item->classARequestsCount, true),
                 ),
                 $this->totalWithSubText(
-                    $item['storage_cents'],
-                    Formatter::gigabyte($item['storage_gb']),
+                    $item->classBRequestsCents,
+                    str('request')->plural($item->classBRequestsCount, true),
                 ),
-                $this->formatTotal($item['total_cents']),
+                $this->totalWithSubText(
+                    $item->storageCents,
+                    Formatter::gigabyte($item->storageGb),
+                ),
+                $this->formatTotal($item->totalCents),
             ])->toArray(),
         );
     }
 
+    /**
+     * @param  list<UsageWebsocket>  $websockets
+     */
     protected function renderWebsocketUsage(array $websockets): void
     {
         if ($websockets === []) {
             return;
         }
 
-        $this->totalsHeader('Websockets', collect($websockets)->sum('total_cents'));
+        $this->totalsHeader('Websockets', collect($websockets)->sum('totalCents'));
 
         table(
             headers: [
@@ -281,16 +304,16 @@ class Usage extends BaseCommand
             ],
             rows: collect($websockets)->map(fn ($item, $i) => [
                 $this->dataWithSubText(
-                    $item['name'],
-                    $item['identifier'],
+                    $item->name,
+                    $item->identifier,
                     $i === count($websockets) - 1,
                 ),
-                $this->dim($item['max_connections']),
+                $this->dim((string) $item->maxConnections),
                 $this->totalWithSubText(
-                    $item['usage_time_cents'],
-                    str('hour')->plural($item['usage_time_hours'], true),
+                    $item->usageTimeCents,
+                    str('hour')->plural($item->usageTimeHours, true),
                 ),
-                $this->formatTotal($item['total_cents'] ?? 0),
+                $this->formatTotal($item->totalCents),
             ])->toArray(),
         );
     }
