@@ -19,7 +19,7 @@ class Usage extends BaseCommand
     protected ?string $jsonDataClass = UsageDto::class;
 
     protected $signature = 'usage
-                            {--period=0 : Usage period offset (0=current, 1=previous, etc.)}
+                            {--period=current : Billing period (current, previous, 1, 2, or 3)}
                             {--environment= : Filter usage by environment ID or name}
                             {--detailed : Show full breakdown with per-resource and per-application tables}';
 
@@ -31,7 +31,8 @@ class Usage extends BaseCommand
 
         intro('Usage');
 
-        $period = (int) $this->option('period');
+        $period = $this->resolvePeriod((string) $this->option('period'));
+
         $environmentId = $this->option('environment')
             ? $this->resolvers()->environment()->from($this->option('environment'))->id
             : null;
@@ -316,6 +317,23 @@ class Usage extends BaseCommand
                 $this->formatTotal($item->totalCents),
             ])->toArray(),
         );
+    }
+
+    protected function resolvePeriod(string $input): int
+    {
+        $valid = ['current', 'previous', '1', '2', '3'];
+
+        if (! in_array($input, $valid)) {
+            $this->failAndExit("Invalid --period value '{$input}'. Must be one of: ".implode(', ', $valid).'.');
+        }
+
+        return match ($input) {
+            'current' => 0,
+            'previous', '1' => 1,
+            '2' => 2,
+            '3' => 3,
+            default => 0,
+        };
     }
 
     protected function totalsHeader(string $title, int $totalCents): void

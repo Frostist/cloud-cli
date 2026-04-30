@@ -105,19 +105,37 @@ it('does not call application:list when only emitting JSON', function () {
     MockClient::global()->assertNotSent(ListApplicationsRequest::class);
 });
 
-it('sends the requested period as a query parameter', function () {
+it('sends the requested period as a query parameter', function (string $input, int $expected) {
     MockClient::global([
         GetOrganizationRequest::class => MockResponse::make(organizationResponse(), 200),
-        GetUsageRequest::class => MockResponse::make(usageResponse(['meta' => ['period' => 1]]), 200),
+        GetUsageRequest::class => MockResponse::make(usageResponse(['meta' => ['period' => $expected]]), 200),
     ]);
 
-    Artisan::call('usage', ['--period' => 1, '--json' => true, '--no-interaction' => true]);
+    Artisan::call('usage', ['--period' => $input, '--json' => true, '--no-interaction' => true]);
 
-    MockClient::global()->assertSent(function ($request) {
+    MockClient::global()->assertSent(function ($request) use ($expected) {
         return $request instanceof GetUsageRequest
-            && $request->query()->get('period') === 1;
+            && $request->query()->get('period') === $expected;
     });
-});
+})->with([
+    ['current', 0],
+    ['previous', 1],
+    ['1', 1],
+    ['2', 2],
+    ['3', 3],
+]);
+
+it('rejects invalid --period values', function (string $input) {
+    MockClient::global([
+        GetOrganizationRequest::class => MockResponse::make(organizationResponse(), 200),
+        GetUsageRequest::class => MockResponse::make(usageResponse(), 200),
+    ]);
+
+    $exitCode = Artisan::call('usage', ['--period' => $input, '--json' => true, '--no-interaction' => true]);
+
+    expect($exitCode)->toBe(1);
+    MockClient::global()->assertNotSent(GetUsageRequest::class);
+})->with(['0', '-1', '4', 'last', '2026-03', '']);
 
 it('handles null bandwidth, credits, and alert gracefully', function () {
     MockClient::global([
