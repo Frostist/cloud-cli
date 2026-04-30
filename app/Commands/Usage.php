@@ -52,7 +52,7 @@ class Usage extends BaseCommand
         $bandwidthLine = $usage->bandwidth === null
             ? '-'
             : sprintf(
-                '%d%% of %s%s',
+                '%.1f%% of %s%s',
                 $usage->bandwidth->usagePercentage,
                 Formatter::bytes($usage->bandwidth->allowanceBytes),
                 $usage->bandwidth->costCents > 0 ? ' ('.Formatter::centsToDollars($usage->bandwidth->costCents).')' : '',
