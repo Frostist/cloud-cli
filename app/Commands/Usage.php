@@ -120,7 +120,7 @@ class Usage extends BaseCommand
         }
 
         if ($usage->addonItems !== []) {
-            info('Add-ons');
+            $this->totalsHeader('Add-ons', $usage->addonsTotalCostCents);
 
             table(
                 headers: ['Name', 'Cost'],
