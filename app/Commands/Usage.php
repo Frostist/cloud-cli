@@ -66,7 +66,26 @@ class Usage extends BaseCommand
             'Last Updated' => $usage->lastUpdatedAt?->format('Y-m-d H:i:s') ?? '—',
         ], fn ($value) => $value !== null));
 
-        if (! $this->option('detailed') && ! $environmentId) {
+        if ($usage->environmentUsageItems !== []) {
+            $this->totalsHeader('Environment Usage', $usage->environmentUsageTotalCostCents);
+
+            table(
+                headers: ['Identifier', 'Type', 'Profile', 'CPU Hours', 'Cost'],
+                rows: collect($usage->environmentUsageItems)->map(fn ($item, $i) => [
+                    $item['identifier'],
+                    $item['type'],
+                    $this->dataWithSubText(
+                        $item['compute_profile'],
+                        $item['compute_description'],
+                        $i === count($usage->environmentUsageItems) - 1,
+                    ),
+                    number_format($item['cpu_hours'], 2),
+                    $this->formatTotal($item['total_cents']),
+                ])->toArray(),
+            );
+        }
+
+        if (! $this->option('detailed')) {
             return self::SUCCESS;
         }
 
@@ -99,25 +118,6 @@ class Usage extends BaseCommand
         $this->renderCacheUsage($usage->caches);
         $this->renderBucketUsage($usage->buckets);
         $this->renderWebsocketUsage($usage->websockets);
-
-        if ($usage->environmentUsageItems !== []) {
-            $this->totalsHeader('Environment Usage', $usage->environmentUsageTotalCostCents);
-
-            table(
-                headers: ['Identifier', 'Type', 'Profile', 'CPU Hours', 'Cost'],
-                rows: collect($usage->environmentUsageItems)->map(fn ($item, $i) => [
-                    $item['identifier'],
-                    $item['type'],
-                    $this->dataWithSubText(
-                        $item['compute_profile'],
-                        $item['compute_description'],
-                        $i === count($usage->environmentUsageItems) - 1,
-                    ),
-                    number_format($item['cpu_hours'], 2),
-                    $this->formatTotal($item['total_cents']),
-                ])->toArray(),
-            );
-        }
 
         if ($usage->addonItems !== []) {
             $this->totalsHeader('Add-ons', $usage->addonsTotalCostCents);
