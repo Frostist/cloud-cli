@@ -89,49 +89,61 @@ class Usage extends BaseCommand
             return self::SUCCESS;
         }
 
-        if ($usage->applications !== []) {
-            $allApplications = spin(
-                fn () => $this->client->applications()->list()->collect()->collect()->keyBy('id')->mapWithKeys(fn ($app) => [$app->id => $app->name]),
-                'Fetching application details...',
-            );
-
-            $this->totalsHeader('Applications', $usage->applicationsTotalCostCents);
-
-            table(
-                headers: ['Name', 'Cost'],
-                rows: collect($usage->applications)
-                    ->sortBy('total_cost_cents')
-                    ->values()
-                    ->map(fn ($app, $i) => [
-                        $this->dataWithSubText(
-                            $allApplications->get($app['identifier']) ?? $app['identifier'],
-                            $app['identifier'],
-                            $i === count($usage->applications) - 1,
-                        ),
-                        $this->formatTotal($app['total_cost_cents']),
-                    ])
-                    ->toArray(),
-            );
-        }
-
+        $this->renderApplicationUsage($usage);
         $this->renderDatabaseUsage($usage->databases);
         $this->renderCacheUsage($usage->caches);
         $this->renderBucketUsage($usage->buckets);
         $this->renderWebsocketUsage($usage->websockets);
-
-        if ($usage->addonItems !== []) {
-            $this->totalsHeader('Add-ons', $usage->addonsTotalCostCents);
-
-            table(
-                headers: ['Name', 'Cost'],
-                rows: collect($usage->addonItems)->map(fn ($item) => [
-                    $item['name'],
-                    $this->formatTotal($item['total_cents']),
-                ])->toArray(),
-            );
-        }
+        $this->renderAddonUsage($usage);
 
         return self::SUCCESS;
+    }
+
+    protected function renderApplicationUsage(UsageDto $usage): void
+    {
+        if ($usage->applications === []) {
+            return;
+        }
+
+        $allApplications = spin(
+            fn () => $this->client->applications()->list()->collect()->collect()->keyBy('id')->mapWithKeys(fn ($app) => [$app->id => $app->name]),
+            'Fetching application details...',
+        );
+
+        $this->totalsHeader('Applications', $usage->applicationsTotalCostCents);
+
+        table(
+            headers: ['Name', 'Cost'],
+            rows: collect($usage->applications)
+                ->sortBy('total_cost_cents')
+                ->values()
+                ->map(fn ($app, $i) => [
+                    $this->dataWithSubText(
+                        $allApplications->get($app['identifier']) ?? $app['identifier'],
+                        $app['identifier'],
+                        $i === count($usage->applications) - 1,
+                    ),
+                    $this->formatTotal($app['total_cost_cents']),
+                ])
+                ->toArray(),
+        );
+    }
+
+    protected function renderAddonUsage(UsageDto $usage): void
+    {
+        if ($usage->addonItems === []) {
+            return;
+        }
+
+        $this->totalsHeader('Add-ons', $usage->addonsTotalCostCents);
+
+        table(
+            headers: ['Name', 'Cost'],
+            rows: collect($usage->addonItems)->map(fn ($item) => [
+                $item['name'],
+                $this->formatTotal($item['total_cents']),
+            ])->toArray(),
+        );
     }
 
     protected function renderDatabaseUsage(array $databases): void
