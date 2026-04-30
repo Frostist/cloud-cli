@@ -101,16 +101,20 @@ class Usage extends BaseCommand
         $this->renderWebsocketUsage($usage->websockets);
 
         if ($usage->environmentUsageItems !== []) {
-            info('Environment Usage');
+            $this->totalsHeader('Environment Usage', $usage->environmentUsageTotalCostCents);
 
             table(
                 headers: ['Identifier', 'Type', 'Profile', 'CPU Hours', 'Cost'],
-                rows: collect($usage->environmentUsageItems)->map(fn ($item) => [
-                    $item['identifier'] ?? '—',
-                    $item['type'] ?? '—',
-                    trim(($item['compute_profile'] ?? '').' '.($item['compute_description'] ?? '')),
-                    number_format($item['cpu_hours'] ?? 0, 2),
-                    Formatter::centsToDollars($item['total_cents'] ?? 0),
+                rows: collect($usage->environmentUsageItems)->map(fn ($item, $i) => [
+                    $item['identifier'],
+                    $item['type'],
+                    $this->dataWithSubText(
+                        $item['compute_profile'],
+                        $item['compute_description'],
+                        $i === count($usage->environmentUsageItems) - 1,
+                    ),
+                    number_format($item['cpu_hours'], 2),
+                    $this->formatTotal($item['total_cents']),
                 ])->toArray(),
             );
         }
@@ -121,8 +125,8 @@ class Usage extends BaseCommand
             table(
                 headers: ['Name', 'Cost'],
                 rows: collect($usage->addonItems)->map(fn ($item) => [
-                    $item['name'] ?? $item['id'] ?? '—',
-                    Formatter::centsToDollars($item['total_cents'] ?? 0),
+                    $item['name'],
+                    $this->formatTotal($item['total_cents']),
                 ])->toArray(),
             );
         }
