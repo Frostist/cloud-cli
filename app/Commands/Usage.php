@@ -50,8 +50,8 @@ class Usage extends BaseCommand
             : sprintf(
                 '%d%% of %s%s',
                 $usage->bandwidthUsagePercentage,
-                $usage->formatBytes($usage->bandwidthAllowanceBytes),
-                $usage->bandwidthCostCents > 0 ? ' ('.$usage->formatCents($usage->bandwidthCostCents).')' : '',
+                Formatter::bytes($usage->bandwidthAllowanceBytes),
+                $usage->bandwidthCostCents > 0 ? ' ('.Formatter::centsToDollars($usage->bandwidthCostCents).')' : '',
             );
 
         dataList(array_filter([
