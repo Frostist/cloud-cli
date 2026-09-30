@@ -1,6 +1,14 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/cloud-cli/compare/v0.6.2...main)
+## [Unreleased](https://github.com/laravel/cloud-cli/compare/v0.6.3...main)
+
+## [v0.6.3](https://github.com/laravel/cloud-cli/compare/v0.6.2...v0.6.3) - 2026-09-30
+
+### What's Changed
+
+* Add metrics commands for environments, databases, caches, and WebSockets by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/225
+
+**Full Changelog**: https://github.com/laravel/cloud-cli/compare/v0.6.2...v0.6.3
 
 ## [v0.6.2](https://github.com/laravel/cloud-cli/compare/v0.6.1...v0.6.2) - 2026-09-30
 
