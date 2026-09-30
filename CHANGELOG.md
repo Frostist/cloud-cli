@@ -1,6 +1,19 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/cloud-cli/compare/v0.6.1...main)
+## [Unreleased](https://github.com/laravel/cloud-cli/compare/v0.6.2...main)
+
+## [v0.6.2](https://github.com/laravel/cloud-cli/compare/v0.6.1...v0.6.2) - 2026-09-30
+
+### What's Changed
+
+* Fail when an environment identifier cannot be resolved by [@edgrosvenor](https://github.com/edgrosvenor) in https://github.com/laravel/cloud-cli/pull/223
+* Cap results in listings to 2000 by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/cloud-cli/pull/224
+
+### New Contributors
+
+* [@edgrosvenor](https://github.com/edgrosvenor) made their first contribution in https://github.com/laravel/cloud-cli/pull/223
+
+**Full Changelog**: https://github.com/laravel/cloud-cli/compare/v0.6.1...v0.6.2
 
 ## [v0.6.1](https://github.com/laravel/cloud-cli/compare/v0.6.0...v0.6.1) - 2026-09-15
 
